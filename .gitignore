@@ -54,4 +54,4 @@ inf.py
 config.json
 .idea
 __pycache__
-log.zote
+*.zote

@@ -2,6 +2,10 @@ import os
 import random
 import discord
 
+pre = "_"
+except_message = "Bah! There is no such thing!"
+hk_server = "283467363729408000"
+
 
 class Multi(object):
 
@@ -17,14 +21,9 @@ class Multi(object):
             self.current = list(self.folder)
         return "{0}/{1}".format(self._dir, next_img)
 
-pre = "_"
-
-except_message = "Bah! There is no such thing!"
-dir_img = "img/"
-dir_reaction = dir_img + "reaction"
-dir_hj = dir_img + "hj/"
-
-hk_server = "283467363729408000"
+##################
+# REACTIONS INIT #
+##################
 
 heart = "❤"
 zote_head = discord.Emoji(
@@ -68,12 +67,22 @@ corny = discord.Emoji(
 )
 
 reactions = {}
-reactions.update({"zote": zote_head, "yes": "", "aspid": aspid, "grub": grub, "heart": heart, "dunq": dunq, "corny": corny})
+reactions.update({
+    "zote": zote_head,
+    "aspid": aspid,
+    "grub": grub,
+    "heart": heart,
+    "dunq": dunq,
+    "corny": corny})
 
 
 ##############
 # MULTI INIT #
 ##############
+
+dir_img = "img/"
+dir_reaction = dir_img + "reaction"
+dir_hj = dir_img + "hj/"
 
 dir_mistake = dir_img + "mistake"
 mistakes = Multi(dir_mistake)

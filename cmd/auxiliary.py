@@ -1,5 +1,8 @@
-from stuff import *
+import urllib.request
 
+from discord.ext.commands.errors import CommandInvokeError
+
+from stuff import *
 
 ch_general = "<#283467363729408000>"
 ch_spoilers = "<#283680756159741953>"
@@ -49,3 +52,27 @@ def enemy_name(*args):
     for each in args[0][1:]:
         r = "{0} {1}".format(r, each.capitalize())
     return "{0}{1}.png".format(dir_hj, r)
+
+search = "http://hollowknight.wikia.com/wiki/Special:Search?query="
+no_results = "http://hollowknight.wikia.com/wiki/Special:Search".encode()
+wiki_str = "http://hollowknight.wikia.com/wiki/"
+
+
+def wiki_search(query):
+    try:
+        loc = 12
+        query = query.replace(" ", "+")
+        page = urllib.request.urlopen("{0}{1}".format(search, query)).readlines()
+        t = wiki_str.encode()
+        links = list([])
+        for each in page:
+            if t in each:
+                links.append(each)
+                # print(each)
+        if no_results in links[loc]:
+            return "None found"
+        else:
+            out = links[loc].split('\"'.encode())[1]
+            return out.decode('utf-8')
+    except CommandInvokeError as e:
+        return "None found"

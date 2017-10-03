@@ -1,20 +1,50 @@
 import os.path
 import random as random_builtin
-from dec import logger
-from init import *
-from text import *
+
+from discord.ext import commands
 
 # This line references the application token
 # Without revealing it on Github.
 # Remove this if you're implementing your own Zote Bot!
 import inf
-
-##########
-"""INIT"""
-##########
+from auxiliary import *
+from init import *
 
 
-@zote.command(pass_context=True, hidden=True)
+def validator(category):
+
+    def predicate(ctx):
+        ch_name = ctx.message.channel.name
+        u_id = ctx.message.author.id
+
+        return u_id in config["mods"] \
+            or (category != "modonly"
+                and ch_name in config[category]
+                and u_id not in config["ignored"]
+                and ch_name not in config["silenced"])
+
+    return commands.check(predicate)
+
+
+def logger(name, category, reaction):
+
+    def wrap(f):
+
+        @validator(category)
+        async def wrapped(ctx, *args):
+            log(name, ctx)
+            if isinstance(reaction, list):
+                for each in reaction:
+                    await zote.add_reaction(ctx.message, reactions[each])
+            else:
+                await zote.add_reaction(ctx.message, reactions[reaction])
+            await f(ctx, *args)
+        return wrapped
+
+    return wrap
+
+
+@zote.command(name="help", pass_context=True, hidden=True)
 async def help(ctx):
     await zote.say("See pinned messages in {0} for a list of commands! (contains spoilers)".format(ch_meme))
 
@@ -168,12 +198,12 @@ async def precept(ctx, at_loc=-1):
     alt: wisdom
     """
     if 1 <= at_loc <= 57:
-        p = config["precepts"][at_loc]
+        p = config["precepts"][at_loc - 1]
         await zote.say("Precept {0}: {1}".format(p[0], p[1]))
     else:
-        config["precept#"] = (config["precept#"] + 1) % 57
         p = config["precepts"][config["precept#"]]
         await zote.say("Precept {0}: {1}".format(p[0], p[1]))
+        config["precept#"] = (config["precept#"] + 1) % 57
         save()
     await zote.add_reaction(ctx.message, reactions["zote"])
 

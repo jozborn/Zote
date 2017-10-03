@@ -15,25 +15,9 @@ def load():
         "precept#",
         "precepts"
     ]
-    _oldframe = [
-        "general",
-        "meme",
-        "safememe",
-        "supermeme",
-        "reference",
-        "speedrunning",
-        "ignored",
-        "silenced",
-        "modonly",
-        "mods",
-        "ignoreList",
-        "precept#",
-        "numbers",
-        "precepts"
-    ]
     out = {}
 
-    with open('config.json', 'r') as f:
+    with open('data/config.json', 'r') as f:
         data = json.load(f)
         for key in _frame:
             out[key] = data[key]
@@ -41,7 +25,7 @@ def load():
 
 
 def save():
-    with open('config.json', 'w') as f:
+    with open('data/config.json', 'w') as f:
         json.dump(config, f, ensure_ascii=False, indent=4)
 
 
@@ -52,7 +36,7 @@ def log(name, ctx):
         time_formatted = datetime.datetime.fromtimestamp(time.time()).strftime('%c')
         s = "{0}, {1}, #{2}, {3}".format(u_name, name, ch_name, time_formatted)
         print(s)
-        with open('log.zote', 'a') as f:
+        with open('data/log.zote', 'a') as f:
             f.write(s)
             f.write("\n")
     except UnicodeEncodeError as e:
