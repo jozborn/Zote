@@ -97,6 +97,11 @@ async def modonly(ctx):
     await zote.say(modtext())
 
 
+#clear(ctx, user, x)
+#clear(ctx, x)
+#countdown(ctx)
+
+
 ###############################
 """CHANNEL-SPECIFIC COMMANDS"""
 ###############################
@@ -201,11 +206,10 @@ async def precept(ctx, at_loc=-1):
         p = config["precepts"][at_loc - 1]
         await zote.say("Precept {0}: {1}".format(p[0], p[1]))
     else:
-        p = config["precepts"][config["precept#"]]
-        await zote.say("Precept {0}: {1}".format(p[0], p[1]))
         config["precept#"] = (config["precept#"] + 1) % 57
+        p = config["precepts"][config["precept#"]-1]
+        await zote.say("Precept {0}: {1}".format(p[0], p[1]))
         save()
-    await zote.add_reaction(ctx.message, reactions["zote"])
 
 
 #################
