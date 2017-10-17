@@ -8,12 +8,17 @@ ch_general = "<#283467363729408000>"
 ch_spoilers = "<#283680756159741953>"
 ch_art = "<#301227786658381825>"
 ch_meme = "<#297468195026239489>"
+ch_help = "<#349116318865424384>"
 
 
 def general_psa():
-    s = "PSA: **{0} is a spoiler-free channel.**\n\n"
-    s += "If it happens after the Forgotten Crossroads, take it to another channel (like {1} or {2}).\n\n"
-    return s.format(ch_general, "#help", ch_spoilers, ch_art)
+    s = "PSA: {0} is a spoiler-free channel.\n\n"
+    s += "This means no discussions past Crossroads.\n\n"
+    s += "If it requires progressing past Crossroads to unlock inside Crossroads, don't talk about it here.\n\n"
+    s += "If you need help with a specific portion of the game, ask in {1} and someone will answer.\n\n"
+    s += "If you wish to talk about the rest of the game or the lore or such, {2}\n\n"
+    s += "If you've drawn something or would like to talk about the art, {3}.\n\n"
+    return s.format(ch_general, ch_help, ch_spoilers, ch_art)
 
 
 def improve():
@@ -26,13 +31,13 @@ def improve():
 
 def modtext():
     s = "**MOD-ONLY COMMANDS:**\n\n"
-    s += "**ignore** / **unignore** [user id]: prevents the user from accessing Zote commands.\n"
-    s += "It can be used with multiple IDs eg {0}ignore [id1] [id2] [id3] ...\n\n"
+    s += "**ignore** [user id]: prevents the user from accessing Zote commands, or takes them off the ignore list.\n\n"
     s += "**ignorelist** shows all users being ignored and their ID.\n\n"
-    s += "**nomemes** and **yesmemes** will cause zote to ignore all meme category requests.\n\n"
-    s += "**listen** [y/n] toggles Zote ignoring all commands except for mod-only ones.\n\n"
-    s += "**generalmute** [y/n] toggles Zote ignoring memes in general"
-    s += "**stop** shuts down Zote so he must be restarted manually."
+    s += "**silence** [#tag channel]: prevents Zote from responding to commands in a channel (or take it off that list)\n\n"
+    s += "**clear** [x] or **clear** [@tag user] [x]: deletes X messages from a channel (or a user in that channel)\n\n"
+    s += "**clearzotes** [optional amount x]: deletes all _commands and posts from Zote, or the X most recent ones\n\n"
+    s += "**helpchannel**: clears all messages in the help channel and reposts the opening help message.\n\n"
+    s += "**ban**: reaction image of the False Knight's Banhammer (not an actual ban!)\n\n"
     return s.format(pre)
 
 

@@ -87,8 +87,11 @@ dir_hj = dir_img + "hj/"
 dir_mistake = dir_img + "mistake"
 mistakes = Multi(dir_mistake)
 
-dir_grubs = dir_img + "rare grubs"
-grubs = Multi(dir_grubs)
+dir_goodgrubs = dir_img + "grublove"
+goodgrubs = Multi(dir_goodgrubs)
+
+dir_badgrubs = dir_img + "grubhate"
+badgrubs = Multi(dir_badgrubs)
 
 dir_memes = dir_img + "meme"
 memes = Multi(dir_memes)

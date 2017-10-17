@@ -8,6 +8,7 @@ def load():
         "general",
         "ref",
         "meme",
+        "supermeme",
         "speedrunning",
         "mods",
         "ignored",
@@ -17,11 +18,13 @@ def load():
     ]
     out = {}
 
-    with open('data/config.json', 'r') as f:
+    with open('data/config.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
         for key in _frame:
             out[key] = data[key]
     return out
+
+config = load()
 
 
 def save():
@@ -41,5 +44,3 @@ def log(name, ctx):
             f.write("\n")
     except UnicodeEncodeError as e:
         print("ERROR CODE 420. Unable to log command due to super dank name.")
-
-config = load()
