@@ -26,10 +26,11 @@ class Multi(object):
 ##################
 
 heart = "❤"
-zote_head = discord.Emoji(
+bee = "🐝"
+zote_emoji = discord.Emoji(
     require_colons="True",
     managed=False,
-    id="321038028384632834",
+    id="371947495330414595",
     name="zote",
     roles=[],
     server=hk_server)
@@ -45,7 +46,7 @@ grub = discord.Emoji(
     require_colons="True",
     managed=False,
     id="291831002874249216",
-    name="grub",
+    name="happygrub",
     roles=[],
     server=hk_server
 )
@@ -68,8 +69,9 @@ corny = discord.Emoji(
 
 reactions = {}
 reactions.update({
-    "zote": zote_head,
+    "zote": zote_emoji,
     "aspid": aspid,
+    "bee": bee,
     "grub": grub,
     "heart": heart,
     "dunq": dunq,
@@ -98,3 +100,6 @@ memes = Multi(dir_memes)
 
 dir_grimm = dir_img + "grimm"
 grimmfaces = Multi(dir_grimm)
+
+dir_goodbees = dir_img + "beelove"
+goodbees = Multi(dir_goodbees)

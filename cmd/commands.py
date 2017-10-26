@@ -1,6 +1,7 @@
 import os.path
 import random as random_builtin
 import sys
+import traceback
 
 from discord.ext import commands
 
@@ -177,26 +178,29 @@ async def clear(ctx, *args):
                 break
         print("Cleared {0} messages from {1} in {2}".format(num, user, ctx.message.channel.name))
 
-
-RELEASE_DATE = datetime.datetime(2017, 10, 31, 0, 0, 0, 0)
-
-@zote.command(name="countdown", pass_context=True, aliases=["jonnypls", "gooftroupewhen", "grimmtimer", "whenishalloween"])
-@logger("Grimm Troupe countdown", "general", ["dunq"])
-async def countdown(ctx, *args):
-    current_time = datetime.datetime.now()
-    until = RELEASE_DATE - current_time
-    hours = until.seconds//3600
-    minutes = (until.seconds - hours*3600) // 60
-    await zote.say("Hollow Knight: The {0} Troupe releases in:\n**{1} days**,\n**{2} hours**,\n**{3} minutes**,\n**{4} seconds**, and\n**{5} milliseconds**"
-                   .format(
-                        "Grimm" if random_builtin.randint(0, 10) >= 3 else "Goof",
-                        until.days,
-                        hours,
-                        minutes,
-                        until.seconds % 60,
-                        until.microseconds/1000
-                    )
-    )
+    @zote.command(name="helpchannel", pass_context=True, hidden=True, aliases=[])
+    @logger("Help channel", "modonly", ["grub"])
+    async def helpchannel(ctx):
+        """ help channel text"""
+        # #help in Hollow Knight
+        cha = zote.get_channel("349116318865424384")
+        LOGS = zote.logs_from(cha, limit=100)
+        while LOGS.__sizeof__() > 0:
+            pinned_count = 0
+            mgs = []
+            async for message in LOGS:
+                if not message.pinned:
+                    mgs.append(message)
+                else:
+                    pinned_count += 1
+            if len(mgs) == 0 or pinned_count == LOGS.__sizeof__():
+                break
+            elif len(mgs) == 1:
+                await zote.delete_message(mgs[0])
+            else:
+                await zote.delete_messages(mgs)
+            LOGS = zote.logs_from(cha, limit=100)
+        print("Messages cleared from help")
 
 
 ###############################
@@ -204,7 +208,7 @@ async def countdown(ctx, *args):
 ###############################
 
 
-@zote.command(name="gitgud", pass_context=True, aliases=["waifu", "<:hornetstand:284210489159057408>"])
+@zote.command(name="gitgud", pass_context=True, aliases=["waifu"])
 @logger("Gitgud", "general", ["zote"])
 async def gitgud(ctx, *args):
     """IMPROVE YOURSELF
@@ -227,36 +231,10 @@ async def guides(ctx, *args):
     await zote.say("https://www.speedrun.com/hollowknight/guides")
 
 
-@zote.command(name="helpchannel", pass_context=True, aliases=[])
-@logger("Help channel", "modonly", ["grub"])
-async def helpchannel(ctx):
-    """ help channel text"""
-    # #help in Hollow Knight
-    cha = zote.get_channel("349116318865424384")
-    while zote.logs_from(cha, limit=100).__sizeof__() > 0:
-        mgs = []
-        async for message in zote.logs_from(cha, limit=100):
-            mgs.append(message)
-        if len(mgs) == 0:
-            break
-        elif len(mgs) == 1:
-            await zote.delete_message(mgs[0])
-        else:
-            await zote.delete_messages(mgs)
-    await zote.send_message(cha, helptext())
-
-
 @zote.command(name="hundred", pass_context=True, aliases=["100", "completion", "💯"])
 @logger("100% guide", "ref", ["grub"])
 async def hundred(ctx, *args):
     await zote.say("**100% completion guide**: https://docs.google.com/document/d/1smOruEIYHbPxsPVocX3RR3E5jrzhpq7RrXhOAocfZDE/edit")
-
-
-@zote.command(name="spoilers", pass_context=True, aliases=["nospoilers", "psa", "spoiler", "spoileralert"])
-@logger("Spoiler Alert", "general", ["grub"])
-async def spoilers(ctx, *args):
-    """ A friendly reminder for #general"""
-    await zote.say(general_psa())
 
 
 @zote.command(name="resources", pass_context=True)
@@ -265,6 +243,13 @@ async def resources(ctx, *args):
     """Quick link to speedrun.com guides
     """
     await zote.say("https://www.speedrun.com/hollowknight/resources")
+
+
+@zote.command(name="spoilers", pass_context=True, aliases=["nospoilers", "psa", "spoiler", "spoileralert"])
+@logger("Spoiler Alert", "general", ["grub"])
+async def spoilers(ctx, *args):
+    """ A friendly reminder for #general"""
+    await zote.say(general_psa())
 
 
 @zote.command(name="wiki", pass_context=True, aliases=["askzote", "<:dunq:335555573481472000>"])
@@ -288,7 +273,7 @@ async def wiki(ctx, *args):
 #####################
 
 
-@zote.command(name="precept", pass_context=True, aliases=["wisdom", "<:zote:321038028384632834>"])
+@zote.command(name="precept", pass_context=True, aliases=["wisdom", "<:zote:371947495330414595>"])
 @logger("Precepts of Zote", "ref", ["zote"])
 async def precept(ctx, at_loc=-1):
     """Hear the precepts of Zote!
@@ -298,7 +283,7 @@ async def precept(ctx, at_loc=-1):
      or hear them in order.
     alt: wisdom
     """
-    if 1 <= at_loc <= 57:
+    if 1 <= int(at_loc) <= 57:
         p = config["precepts"][at_loc - 1]
         await zote.say("Precept {0}: {1}".format(p[0], p[1]))
     else:
@@ -331,7 +316,7 @@ async def enemy(ctx, *args):
 ##########
 
 
-@zote.command(name="meme", pass_context=True, aliases=["fuckmeupfam", "gimmethatmeme", "<:hollowdab:320735637386821643>", "<:hollowomg:337314365323870209>", "<:hollowlenny:337314901670232064>", "<:corny:309365508682285057>", "<:hollowface:324349140920434690>", "<:hollowwow:343784030828888065>", "<:intenseface:331674362509787136>", "<:hollowwoke:344348211433177088>", "jetfuelcantmeltdankmemes"])
+@zote.command(name="meme", pass_context=True, aliases=["fuckmeupfam", "gimmethatmeme", "<:hollowdab:320735637386821643>", "<:hollowomg:337314365323870209>", "<:hollowlenny:337314901670232064>", "<:corny:309365508682285057>", "<:hollowface:324349140920434690>", "<:hollowwow:343784030828888065>", "<:intenseface:331674362509787136>", "<:hollowwoke:344348211433177088>", "jetfuelcantmeltdankmemes", "<:hollowdabreverse:369966711648026624>"])
 @logger("Meme", "supermeme", ["zote", "corny", "aspid", "grub"])
 async def meme(ctx, *args):
     await zote.upload(memes.next())
@@ -349,13 +334,19 @@ async def grimm(ctx, *args):
     await zote.upload(grimmfaces.next())
 
 
-@zote.command(name="grublove", pass_context=True, aliases=["grubme", "grubs", "raregrub", "raregrubs", "<:grub:314011604696170496>", "<:happygrub:291831002874249216>", "<:sadgrub:316743976474509314>"])
+@zote.command(name="beelove", pass_context=True, aliases=["🐝"])
+@logger("Bee Love", "meme", ["bee", "heart", "zote"])
+async def beelove(ctx, *args):
+    await zote.upload(goodbees.next())
+
+
+@zote.command(name="grublove", pass_context=True, aliases=["<:happygrub:291831002874249216>"])
 @logger("Grub Love", "meme", ["grub", "heart", "zote"])
 async def grublove(ctx, *args):
     await zote.upload(goodgrubs.next())
 
 
-@zote.command(name="grubhate", pass_context=True, aliases=[])
+@zote.command(name="grubhate", pass_context=True, aliases=["<:sadgrub:316743976474509314>"])
 @logger("Grub Hate", "meme", ["grub", "aspid", "zote"])
 async def grubhate(ctx, *args):
     await zote.upload(badgrubs.next())
@@ -442,10 +433,10 @@ async def elderbug(ctx, *args):
     await zote.upload(dir_reaction + "/elderbug die.png")
 
 
-@zote.command(name="flukemilf", pass_context=True, aliases=["whathaveidone"])
-@logger("FlukeMILF", "meme", ["zote"])
-async def flukemilf(ctx, *args):
-    await zote.upload(dir_reaction + "/flukemilf.gif")
+# @zote.command(name="flukemilf", pass_context=True, aliases=["whathaveidone"])
+# @logger("FlukeMILF", "meme", ["zote"])
+# async def flukemilf(ctx, *args):
+#     await zote.upload(dir_reaction + "/flukemilf.gif")
 
 
 @zote.command(name="gorb", pass_context=True, aliases=["ascend", "ascendbro", "shinygorb"])
@@ -457,7 +448,13 @@ async def gorb(ctx, *args):
     await zote.upload(dir_reaction + "/shinygorb.jpg")
 
 
-@zote.command(name="grubfather", pass_context=True, aliases=["onthisthedaymydaughteristobemarried", "myeh", "<:grubfather:291831043386769419>"])
+@zote.command(name="graig", pass_context=True, aliases=["graigpls"])
+@logger("Graig", "ref", ["aspid"])
+async def graig(ctx, *args):
+    await zote.upload(dir_reaction + "/graig.png")
+
+
+@zote.command(name="grubfather", pass_context=True, aliases=["onthisthedaymydaughteristobemarried", "myeh", "<:grubfather:341180809228845056>"])
 @logger("Grubfather", "meme", ["grub"])
 async def grubfather(ctx, *args):
     """No respect
@@ -511,7 +508,7 @@ async def meirl(ctx, *args):
     await zote.upload(dir_reaction + "/meirl.png")
 
 
-@zote.command(name="mrmushroom", pass_context=True, aliases=["scuse", "mushroom", "shroom", "mushroomman", "scuze", "mrmush", "excuseme"])
+@zote.command(name="mrmushroom", pass_context=True, aliases=["🍄", "mushroom", "shroom", "mushroomman", "excuseme"])
 @logger("Mr Mushroom", "reaction", ["zote"])
 async def mrmushroom(ctx, *args):
     """Nyush oola mumu?
@@ -554,16 +551,24 @@ async def praise(ctx, *args):
     await zote.upload(dir_reaction + "/praise the light.jpg")
 
 
+@zote.command(name="random", pass_context=True, aliases=["randomizer", "seed"])
+@logger("Randomizer seed", "speedrunning", ["aspid"])
+async def randomizerseed(ctx, *args):
+    seed = [random_builtin.randint(1, 9)]
+    seed += [random_builtin.randint(0, 9) for k in range(8)]
+    g = ""
+    for each in seed:
+        g += str(each)
+    if len(args) > 0 and args[0] == "m":
+        await zote.send_message(ctx.message.author, "Your randomizer seed is {0}. {1}".format(g, randomizerTaunt()))
+    else:
+        await zote.say("Your randomizer seed is {0}. {1}".format(g, randomizerTaunt()))
+
+
 @zote.command(name="shaw", pass_context=True, aliases=[])
 @logger("Shaw", "meme", ["zote"])
 async def shaw(ctx, *args):
     await zote.upload(dir_reaction + "/imgonnashaw.jpg")
-
-
-@zote.command(name="stealyogirl", pass_context=True, aliases=[])
-@logger("Steal Yo Girl", "meme", ["zote"])
-async def stealyogirl(ctx, *args):
-    await zote.upload(dir_reaction + "/stealyogirl.jpg")
 
 
 @zote.command(name="squadgoals", pass_context=True, aliases=["squad", "tearsquad"])
@@ -573,6 +578,12 @@ async def squadgoals(ctx, *args):
     alt: squad, tearsquad
     """
     await zote.upload(dir_reaction + "/squad goals.png")
+
+
+@zote.command(name="stealyogirl", pass_context=True, aliases=[])
+@logger("Steal Yo Girl", "meme", ["zote"])
+async def stealyogirl(ctx, *args):
+    await zote.upload(dir_reaction + "/stealyogirl.jpg")
 
 
 @zote.command(name="steelsoul", pass_context=True, aliases=["darksouls", "danksouls", "defeated", "trialoffools"])
@@ -595,4 +606,8 @@ async def youfool(ctx, *args):
 # sys.tracebacklimit = 1
 
 # Replace inf.token() with your application token
-zote.run(inf.token())
+try:
+    zote.run(inf.token())
+except Exception as e:
+    with open('data/crash.zote', 'a') as file:
+        file.write(traceback.format_exc())

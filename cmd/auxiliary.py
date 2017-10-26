@@ -50,6 +50,16 @@ def helptext():
     return help_text
 
 
+def randomizerTaunt():
+    possible = ["May you find Mantis Claw in King's Pass.",
+                "If all else fails, just shade skip.",
+                "If it takes more than 5 hours you should probably reset.",
+                "You'll never find the Crystal Heart.",
+                "It's impossible to softlock, just gitgud."
+                ]
+    return possible[random.randint(0, len(possible)-1)]
+
+
 def enemy_name(*args):
     if len(args[0]) == 0:
         return "Zote"
