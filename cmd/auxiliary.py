@@ -89,5 +89,5 @@ def wiki_search(query):
         else:
             out = links[loc].split('\"'.encode())[1]
             return out.decode('utf-8')
-    except CommandInvokeError as e:
+    except Exception as e:
         return "None found"

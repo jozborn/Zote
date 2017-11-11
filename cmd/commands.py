@@ -178,29 +178,29 @@ async def clear(ctx, *args):
                 break
         print("Cleared {0} messages from {1} in {2}".format(num, user, ctx.message.channel.name))
 
-    @zote.command(name="helpchannel", pass_context=True, hidden=True, aliases=[])
-    @logger("Help channel", "modonly", ["grub"])
-    async def helpchannel(ctx):
-        """ help channel text"""
-        # #help in Hollow Knight
-        cha = zote.get_channel("349116318865424384")
-        LOGS = zote.logs_from(cha, limit=100)
-        while LOGS.__sizeof__() > 0:
-            pinned_count = 0
-            mgs = []
-            async for message in LOGS:
-                if not message.pinned:
-                    mgs.append(message)
-                else:
-                    pinned_count += 1
-            if len(mgs) == 0 or pinned_count == LOGS.__sizeof__():
-                break
-            elif len(mgs) == 1:
-                await zote.delete_message(mgs[0])
+@zote.command(name="helpchannel", pass_context=True, hidden=True, aliases=[])
+@logger("Help channel", "modonly", ["grub"])
+async def helpchannel(ctx, *args):
+    """ help channel text"""
+    # #help in Hollow Knight
+    cha = zote.get_channel("349116318865424384")
+    LOGS = zote.logs_from(cha, limit=100)
+    while LOGS.__sizeof__() > 0:
+        pinned_count = 0
+        mgs = []
+        async for message in LOGS:
+            if not message.pinned:
+                mgs.append(message)
             else:
-                await zote.delete_messages(mgs)
-            LOGS = zote.logs_from(cha, limit=100)
-        print("Messages cleared from help")
+                pinned_count += 1
+        if len(mgs) == 0 or pinned_count == LOGS.__sizeof__():
+            break
+        elif len(mgs) == 1:
+            await zote.delete_message(mgs[0])
+        else:
+            await zote.delete_messages(mgs)
+        LOGS = zote.logs_from(cha, limit=100)
+    print("Messages cleared from help")
 
 
 ###############################
@@ -245,11 +245,19 @@ async def resources(ctx, *args):
     await zote.say("https://www.speedrun.com/hollowknight/resources")
 
 
-@zote.command(name="spoilers", pass_context=True, aliases=["nospoilers", "psa", "spoiler", "spoileralert"])
+@zote.command(name="spoilers", pass_context=True, aliases=["nospoilers", "spoiler", "spoileralert"])
 @logger("Spoiler Alert", "general", ["grub"])
 async def spoilers(ctx, *args):
     """ A friendly reminder for #general"""
     await zote.say(general_psa())
+
+
+@zote.command(name="splrs", pass_context=True, aliases=["psa"])
+@logger("Splr lrt", "general", ["grub"])
+async def splrs(ctx, *args):
+    """ A friendly reminder for #general"""
+    await zote.say("**Reminder**: Please avoid any discussion of content past the Forgotten Crossroads! Discuss details"
+                   + " in {0} or {1}".format(ch_help, ch_spoilers))
 
 
 @zote.command(name="wiki", pass_context=True, aliases=["askzote", "<:dunq:335555573481472000>"])
@@ -284,7 +292,7 @@ async def precept(ctx, at_loc=-1):
     alt: wisdom
     """
     if 1 <= int(at_loc) <= 57:
-        p = config["precepts"][at_loc - 1]
+        p = config["precepts"][int(at_loc) - 1]
         await zote.say("Precept {0}: {1}".format(p[0], p[1]))
     else:
         config["precept#"] = (config["precept#"] + 1) % 57
@@ -316,7 +324,7 @@ async def enemy(ctx, *args):
 ##########
 
 
-@zote.command(name="meme", pass_context=True, aliases=["fuckmeupfam", "gimmethatmeme", "<:hollowdab:320735637386821643>", "<:hollowomg:337314365323870209>", "<:hollowlenny:337314901670232064>", "<:corny:309365508682285057>", "<:hollowface:324349140920434690>", "<:hollowwow:343784030828888065>", "<:intenseface:331674362509787136>", "<:hollowwoke:344348211433177088>", "jetfuelcantmeltdankmemes", "<:hollowdabreverse:369966711648026624>"])
+@zote.command(name="meme", pass_context=True, aliases=["fuckmeupfam", "gimmethatmeme", "<:hollowomg:337314365323870209>", "<:hollowlenny:337314901670232064>", "<:corny:309365508682285057>", "<:hollowface:324349140920434690>", "<:hollowwow:343784030828888065>", "<:intenseface:331674362509787136>", "<:hollowwoke:344348211433177088>", "jetfuelcantmeltdankmemes"])
 @logger("Meme", "supermeme", ["zote", "corny", "aspid", "grub"])
 async def meme(ctx, *args):
     await zote.upload(memes.next())
@@ -352,7 +360,13 @@ async def grubhate(ctx, *args):
     await zote.upload(badgrubs.next())
 
 
-@zote.command(name="mistake", pass_context=True, aliases=["gittlelirl"])
+@zote.command(name="maggothate", pass_context=True, aliases=["maggoth8", "<:maggot:313428664576376832>"])
+@logger("Maggot Hate", "meme", ["maggot", "aspid", "zote"])
+async def grubhate(ctx, *args):
+    await zote.upload(badmaggots.next())
+
+
+@zote.command(name="mistake", pass_context=True, aliases=["gittlelirl", "gittle", "mistae", "mistaek", "mistkae"])
 @logger("Mistake", "meme", ["zote"])
 async def mistake(ctx, *args):
     await zote.upload(mistakes.next())
@@ -403,6 +417,12 @@ async def celebrate(ctx, *args):
     await zote.upload(dir_reaction + "/dancing.gif")
 
 
+@zote.command(name="dab", pass_context=True, aliases=["bro", "d4b", "<:hollowdab:320735637386821643>", "<:hollowdabreverse:369966711648026624>"])
+@logger("Dab", "general", ["dableft", "zote", "dabright"])
+async def dab(ctx, *args):
+    pass
+
+
 @zote.command(name="dashmasterdrake", pass_context=True, aliases=["drake", "dashmaster"])
 @logger("Dashmaster Drake", "meme", ["zote"])
 async def dashmasterdrake(ctx, *args):
@@ -416,7 +436,7 @@ async def datvoid(ctx, *args):
 
 
 @zote.command(name="disapprove", pass_context=True, aliases=["emilitia"])
-@logger("Disapproving Emilitia", "reaction", ["zote"])
+@logger("Disapproving Emilitia", "meme", ["zote"])
 async def disapprove(ctx, *args):
     """Emilitia
     alt: emilitia
@@ -433,14 +453,19 @@ async def elderbug(ctx, *args):
     await zote.upload(dir_reaction + "/elderbug die.png")
 
 
-# @zote.command(name="flukemilf", pass_context=True, aliases=["whathaveidone"])
-# @logger("FlukeMILF", "meme", ["zote"])
-# async def flukemilf(ctx, *args):
-#     await zote.upload(dir_reaction + "/flukemilf.gif")
+@zote.command(name="frug", pass_context=True, aliases=[])
+@logger("Frug", "general", ["grub"])
+async def frug(ctx, *args):
+    await zote.upload(dir_reaction + "/frug.jpg")
+
+@zote.command(name="flukemilf", pass_context=True, aliases=["whathaveidone"])
+@logger("FlukeMILF", "meme", ["zote"])
+async def flukemilf(ctx, *args):
+    await zote.upload(dir_reaction + "/flukemilf.gif")
 
 
 @zote.command(name="gorb", pass_context=True, aliases=["ascend", "ascendbro", "shinygorb"])
-@logger("Gorb", "reaction", ["zote"])
+@logger("Gorb", "meme", ["zote"])
 async def gorb(ctx, *args):
     """Gorb 
     alt: ascend, ascendbro, shinygorb
@@ -488,7 +513,7 @@ async def hornet(ctx, *args):
 
 
 @zote.command(name="hornetspin", pass_context=True, aliases=["spin", "buhhuhhuh"])
-@logger("Hornet Spin", "reaction", ["zote"])
+@logger("Hornet Spin", "meme", ["zote"])
 async def hornetspin(ctx, *args):
     await zote.upload(dir_reaction + "/hornetspin.gif")
 
@@ -509,7 +534,7 @@ async def meirl(ctx, *args):
 
 
 @zote.command(name="mrmushroom", pass_context=True, aliases=["🍄", "mushroom", "shroom", "mushroomman", "excuseme"])
-@logger("Mr Mushroom", "reaction", ["zote"])
+@logger("Mr Mushroom", "meme", ["zote"])
 async def mrmushroom(ctx, *args):
     """Nyush oola mumu?
     alt: scuse, mushroom, shroom, mushroomman, scuze, mrmush, excuseme
@@ -595,6 +620,15 @@ async def steelsoul(ctx, *args):
     await zote.upload(dir_reaction + "/defeated.jpg")
 
 
+@zote.command(name="verupls", pass_context=True, aliases=[])
+@logger("Steel Soul", "general", ["zote"])
+async def verupls(ctx, *args):
+    """Defeated
+    alt: darksouls, danksouls, defeated, trialoffools
+    """
+    await zote.say("That is not a valid command.")
+
+
 @zote.command(name="youfool", pass_context=True, aliases=["xero", "fool"])
 @logger("You Fool", "meme", ["zote"])
 async def youfool(ctx, *args):
@@ -605,9 +639,23 @@ async def youfool(ctx, *args):
 
 # sys.tracebacklimit = 1
 
-# Replace inf.token() with your application token
-try:
-    zote.run(inf.token())
-except Exception as e:
-    with open('data/crash.zote', 'a') as file:
-        file.write(traceback.format_exc())
+fails = 0
+
+# If it causes errors
+while True:
+    # Replace inf.token() with your application token
+    try:
+        zote.run(inf.token())
+    except Exception as e:
+        fails += 1
+        if fails >= 100:
+            sys.exit(1)
+        else:
+            print("ZOTE HAS CRASHED!! Will attempt to run again\n\n")
+            with open('data/crash.zote', 'a') as file:
+                file.write(traceback.format_exc())
+            print("########################")
+            print("    Zote, The Mighty")
+            print("by Conrad @the_complexor")
+            print("########################\n")
+

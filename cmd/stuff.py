@@ -66,6 +66,30 @@ corny = discord.Emoji(
     roles=[],
     server=hk_server
 )
+dabright = discord.Emoji(
+    require_colons="True",
+    managed=False,
+    id="320735637386821643",
+    name="hollowdab",
+    roles=[],
+    server=hk_server
+)
+dableft = discord.Emoji(
+    require_colons="True",
+    managed=False,
+    id="369966711648026624",
+    name="hollowdabreverse",
+    roles=[],
+    server=hk_server
+)
+maggot = discord.Emoji(
+    require_colons="True",
+    managed=False,
+    id="313428664576376832",
+    name="maggot",
+    roles=[],
+    server=hk_server
+)
 
 reactions = {}
 reactions.update({
@@ -75,7 +99,10 @@ reactions.update({
     "grub": grub,
     "heart": heart,
     "dunq": dunq,
-    "corny": corny})
+    "corny": corny,
+    "dableft": dableft,
+    "dabright": dabright,
+    "maggot": maggot})
 
 
 ##############
@@ -103,3 +130,6 @@ grimmfaces = Multi(dir_grimm)
 
 dir_goodbees = dir_img + "beelove"
 goodbees = Multi(dir_goodbees)
+
+dir_badmaggots = dir_img + "maggothate"
+badmaggots = Multi(dir_badmaggots)
