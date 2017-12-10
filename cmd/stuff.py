@@ -90,6 +90,15 @@ maggot = discord.Emoji(
     roles=[],
     server=hk_server
 )
+cherry = discord.Emoji(
+    require_colons="True",
+    managed=False,
+    id="284210478450868224",
+    name="teamcherry",
+    roles=[],
+    server=hk_server
+)
+
 
 reactions = {}
 reactions.update({
@@ -102,7 +111,8 @@ reactions.update({
     "corny": corny,
     "dableft": dableft,
     "dabright": dabright,
-    "maggot": maggot})
+    "maggot": maggot,
+    "cherry": cherry})
 
 
 ##############
@@ -110,7 +120,7 @@ reactions.update({
 ##############
 
 dir_img = "img/"
-dir_reaction = dir_img + "reaction"
+dir_reaction = dir_img + "reaction/"
 dir_hj = dir_img + "hj/"
 
 dir_mistake = dir_img + "mistake"

@@ -55,3 +55,4 @@ config.json
 .idea
 __pycache__
 *.zote
+data

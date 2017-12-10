@@ -5,6 +5,7 @@ import time
 
 def load():
     _frame = [
+        "n",
         "general",
         "ref",
         "meme",
@@ -30,6 +31,15 @@ config = load()
 def save():
     with open('data/config.json', 'w') as f:
         json.dump(config, f, ensure_ascii=False, indent=4)
+
+
+def add_report(report: str, n: int=0):
+    try:
+        with open('data/reports{0}.txt'.format(n), 'a') as f:
+            f.write(report)
+            f.write("\n")
+    except UnicodeEncodeError as e:
+        print("ERROR CODE 420. Unable to log command due to super dank name.")
 
 
 def log(name, ctx):

@@ -142,22 +142,21 @@ async def clearzotes(ctx, *args):
 @zote.command(name="clear", pass_context=True, hidden=True)
 @logger("Mod: clear messages", "modonly", ["grub"])
 async def clear(ctx, *args):
-    if str.isdecimal(args[0][0]):
-        num = int(args[0][0])
+    if str.isdecimal(args[0]):
+        num = int(args[0])
         mgs = []
         async for message in zote.logs_from(zote.get_channel(ctx.message.channel.id), limit=num):
             await zote.delete_message(message)
-            # mgs.append(message)
-        # if len(mgs) == 1:
-        #     await zote.delete_message(mgs[0])
-        # else:
-        #     await zote.delete_messages(mgs)
         print("Cleared {0} messages from {1}".format(num, ctx.message.channel.name))
     else:
-        user = args[0][3:len(args[0]) - 1]
-        num = 100 if len(args) == 1 else int(args[1])
-        num = num if num <= 100 else 100
+        user = args[0][2:len(args[0]) - 1]
+        try:
+            num = 100 if len(args) == 1 else int(args[1])
+            num = num if num <= 100 else 100
+        except Exception as e:
+            num = 100
         count = 0
+        prev_count = 0
         while count < num:
             prev_count = count
             mgs = []
@@ -176,7 +175,7 @@ async def clear(ctx, *args):
             #     await zote.delete_messages(mgs)
             if count == prev_count:
                 break
-        print("Cleared {0} messages from {1} in {2}".format(num, user, ctx.message.channel.name))
+        print("Cleared {prev_count} messages from {1} in {2}".format(num, user, ctx.message.channel.name))
 
 @zote.command(name="helpchannel", pass_context=True, hidden=True, aliases=[])
 @logger("Help channel", "modonly", ["grub"])
@@ -218,9 +217,9 @@ async def gitgud(ctx, *args):
     else:
         chance = random_builtin.randint(0, 10)
         if chance <= 1:
-            await zote.upload(dir_reaction + "/gitwoke.jpg")
+            await zote.upload(dir_reaction + "gitwoke.jpg")
         else:
-            await zote.upload(dir_reaction + "/gitgud.png")
+            await zote.upload(dir_reaction + "gitgud.png")
 
 
 @zote.command(name="guides", pass_context=True, aliases=["guide", "speedrunguide"])
@@ -331,13 +330,13 @@ async def meme(ctx, *args):
 
 
 @zote.command(name="goodmemeplease", pass_context=True, aliases=[])
-@logger("Good memes", "meme", ["dunq"])
+@logger("Good memes", "supermeme", ["dunq"])
 async def goodmemeplease(ctx, *args):
     await zote.upload(memes.next())
 
 
 @zote.command(name="grimm", pass_context=True, aliases=["grimmface", "gooftroupe", "grimmadventure"])
-@logger("Grimm Troupe Face", "meme", ["zote", "grub"])
+@logger("Grimm Troupe Face", "supermeme", ["zote", "grub"])
 async def grimm(ctx, *args):
     await zote.upload(grimmfaces.next())
 
@@ -360,9 +359,15 @@ async def grubhate(ctx, *args):
     await zote.upload(badgrubs.next())
 
 
+@zote.command(name="lore", pass_context=True, aliases=["wilbopls"])
+@logger("Hollow Knight Lore", "general", ["zote", "heart", "cherry"])
+async def lore(ctx, *args):
+    await zote.upload(dir_reaction + "lore.jpg")
+
+
 @zote.command(name="maggothate", pass_context=True, aliases=["maggoth8", "<:maggot:313428664576376832>"])
 @logger("Maggot Hate", "meme", ["maggot", "aspid", "zote"])
-async def grubhate(ctx, *args):
+async def maggothate(ctx, *args):
     await zote.upload(badmaggots.next())
 
 
@@ -382,7 +387,7 @@ async def absolutelymobadis(ctx, *args):
     """Bapanada.
     Alt: mobadis, bapanada
     """
-    await zote.upload(dir_reaction + "/absolutelymobadis.jpg")
+    await zote.upload(dir_reaction + "absolutelymobadis.jpg")
 
 
 @zote.command(name="aspid", pass_context=True, aliases=["trollaspid", "trolol", "trololol", "<:primalaspid:297708185899499522>"])
@@ -391,13 +396,13 @@ async def aspid(ctx, *args):
     """Troll aspid
     alt: trolol, trololol, trolololol, trololololol, trolololololol
     """
-    await zote.upload(dir_reaction + "/trollaspid.png")
+    await zote.upload(dir_reaction + "trollaspid.png")
 
 
 @zote.command(name="ban", pass_context=True, aliases=["b4n", "modpoweractivate", "modpowersactivate", "bourgeoisie", "banhammer"])
 @logger("Banhammer", "modonly", ["grub", "heart", "aspid"])
 async def ban(ctx, *args):
-    await zote.upload(dir_reaction + "/banhammer.png")
+    await zote.upload(dir_reaction + "banhammer.png")
 
 
 @zote.command(name="bapanada420", pass_context=True, aliases=["420"])
@@ -405,7 +410,7 @@ async def ban(ctx, *args):
 async def bapanada420(ctx, *args):
     """ Mobadis friendly
     """
-    await zote.upload(dir_reaction + "/420.jpg")
+    await zote.upload(dir_reaction + "420.jpg")
 
 
 @zote.command(name="celebrate", pass_context=True, aliases=["dance"])
@@ -414,10 +419,10 @@ async def celebrate(ctx, *args):
     """Like no one is watching
     alt: dance
     """
-    await zote.upload(dir_reaction + "/dancing.gif")
+    await zote.upload(dir_reaction + "dancing.gif")
 
 
-@zote.command(name="dab", pass_context=True, aliases=["bro", "d4b", "<:hollowdab:320735637386821643>", "<:hollowdabreverse:369966711648026624>"])
+@zote.command(name="dab", pass_context=True, aliases=["bro", "d4b", "dab_", "<:hollowdab:320735637386821643>", "<:hollowdabreverse:369966711648026624>"])
 @logger("Dab", "general", ["dableft", "zote", "dabright"])
 async def dab(ctx, *args):
     pass
@@ -426,13 +431,13 @@ async def dab(ctx, *args):
 @zote.command(name="dashmasterdrake", pass_context=True, aliases=["drake", "dashmaster"])
 @logger("Dashmaster Drake", "meme", ["zote"])
 async def dashmasterdrake(ctx, *args):
-    await zote.upload(dir_reaction + "/dashmaster.jpg")
+    await zote.upload(dir_reaction + "dashmaster.jpg")
 
 
 @zote.command(name="datvoid", pass_context=True, aliases=[])
 @logger("O Shit waddup", "meme", ["zote"])
 async def datvoid(ctx, *args):
-    await zote.upload(dir_reaction + "/datvoid.jpg")
+    await zote.upload(dir_reaction + "datvoid.jpg")
 
 
 @zote.command(name="disapprove", pass_context=True, aliases=["emilitia"])
@@ -441,7 +446,7 @@ async def disapprove(ctx, *args):
     """Emilitia
     alt: emilitia
     """
-    await zote.upload(dir_reaction + "/disapprove.png")
+    await zote.upload(dir_reaction + "disapprove.png")
 
 
 @zote.command(name="elderbug", pass_context=True, aliases=["guessilldie", "guilttrip", "<:elderbug:337323354589757451>"])
@@ -450,18 +455,18 @@ async def elderbug(ctx, *args):
     """Elderbug guilt trip
     alt: guessilldie, guilttrip
     """
-    await zote.upload(dir_reaction + "/elderbug die.png")
+    await zote.upload(dir_reaction + "elderbug die.png")
 
 
 @zote.command(name="frug", pass_context=True, aliases=[])
 @logger("Frug", "general", ["grub"])
 async def frug(ctx, *args):
-    await zote.upload(dir_reaction + "/frug.jpg")
+    await zote.upload(dir_reaction + "frug.jpg")
 
 @zote.command(name="flukemilf", pass_context=True, aliases=["whathaveidone"])
 @logger("FlukeMILF", "meme", ["zote"])
 async def flukemilf(ctx, *args):
-    await zote.upload(dir_reaction + "/flukemilf.gif")
+    await zote.upload(dir_reaction + "flukemilf.gif")
 
 
 @zote.command(name="gorb", pass_context=True, aliases=["ascend", "ascendbro", "shinygorb"])
@@ -470,13 +475,13 @@ async def gorb(ctx, *args):
     """Gorb 
     alt: ascend, ascendbro, shinygorb
     """
-    await zote.upload(dir_reaction + "/shinygorb.jpg")
+    await zote.upload(dir_reaction + "shinygorb.jpg")
 
 
 @zote.command(name="graig", pass_context=True, aliases=["graigpls"])
-@logger("Graig", "ref", ["aspid"])
+@logger("Graig", "ref", ["zote", "heart", "cherry"])
 async def graig(ctx, *args):
-    await zote.upload(dir_reaction + "/graig.png")
+    await zote.upload(dir_reaction + "graig.png")
 
 
 @zote.command(name="grubfather", pass_context=True, aliases=["onthisthedaymydaughteristobemarried", "myeh", "<:grubfather:341180809228845056>"])
@@ -485,7 +490,7 @@ async def grubfather(ctx, *args):
     """No respect
     Alt: onthisthedaymydaughteristobemarried, myeh
     """
-    await zote.upload(dir_reaction + "/grubfather.jpg")
+    await zote.upload(dir_reaction + "grubfather.jpg")
 
 
 @zote.command(name="hallonite", pass_context=True, aliases=["holo", "holonite", "loog"])
@@ -494,7 +499,7 @@ async def hallonite(ctx, *args):
     """is halo nit logo k
     alt: holo, holonite, loog
     """
-    await zote.upload(dir_reaction + "/hallonite.jpg")
+    await zote.upload(dir_reaction + "hallonite.jpg")
 
 
 @zote.command(name="hollowdoot", pass_context=True, aliases=["doot", "dootdoot"])
@@ -503,25 +508,25 @@ async def hollowdoot(ctx, *args):
     """Doot
     Alt: doot, dootdoot
     """
-    await zote.upload(dir_reaction + "/hollowdoot.jpg")
+    await zote.upload(dir_reaction + "hollowdoot.jpg")
 
 
 @zote.command(name="hornet", pass_context=True, aliases=["bottleopener", "coldone"])
 @logger("Hornet Bottle Opener", "meme", ["zote"])
 async def hornet(ctx, *args):
-    await zote.upload(dir_reaction + "/hornet bottle opener.jpg")
+    await zote.upload(dir_reaction + "hornet bottle opener.jpg")
 
 
 @zote.command(name="hornetspin", pass_context=True, aliases=["spin", "buhhuhhuh"])
 @logger("Hornet Spin", "meme", ["zote"])
 async def hornetspin(ctx, *args):
-    await zote.upload(dir_reaction + "/hornetspin.gif")
+    await zote.upload(dir_reaction + "hornetspin.gif")
 
 
 @zote.command(name="hklogic", pass_context=True, aliases=["stabyourself", "stab", "stabfirst", "youfirst", "<:hollowknice:300572689616076801>"])
 @logger("HK Logic", "meme", ["zote"])
 async def hklogic(ctx, *args):
-    await zote.upload(dir_reaction + "/stabyourselffirst.jpg")
+    await zote.upload(dir_reaction + "stabyourselffirst.jpg")
 
 
 @zote.command(name="meirl", pass_context=True, aliases=["me", "me_irl", "dead"])
@@ -530,7 +535,7 @@ async def meirl(ctx, *args):
     """me_irl
     alt: me, me_irl, dead
     """
-    await zote.upload(dir_reaction + "/meirl.png")
+    await zote.upload(dir_reaction + "meirl.png")
 
 
 @zote.command(name="mrmushroom", pass_context=True, aliases=["🍄", "mushroom", "shroom", "mushroomman", "excuseme"])
@@ -539,7 +544,7 @@ async def mrmushroom(ctx, *args):
     """Nyush oola mumu?
     alt: scuse, mushroom, shroom, mushroomman, scuze, mrmush, excuseme
     """
-    await zote.upload(dir_reaction + "/scuse me.png")
+    await zote.upload(dir_reaction + "scuse me.png")
 
 
 @zote.command(name="nootdoot", pass_context=True, aliases=["noot", "dootnoot"])
@@ -548,7 +553,7 @@ async def nootdoot(ctx, *args):
     """I am Noot
     Alt: noot, dootnoot
     """
-    await zote.upload(dir_reaction + "/nootdoot.png")
+    await zote.upload(dir_reaction + "nootdoot.png")
 
 
 @zote.command(name="pervertedlight", pass_context=True, aliases=["<:smugrad:300589495437230080>"])
@@ -556,7 +561,7 @@ async def nootdoot(ctx, *args):
 async def pervertedlight(ctx, *args):
     """Radiance
     """
-    await zote.upload(dir_reaction + "/perverted light.gif")
+    await zote.upload(dir_reaction + "perverted light.gif")
 
 
 @zote.command(name="popcorn", pass_context=True)
@@ -564,7 +569,7 @@ async def pervertedlight(ctx, *args):
 async def popcorn(ctx, *args):
     """I'm gonna need some popcorn
     """
-    await zote.upload(dir_reaction + "/popcorn.jpg")
+    await zote.upload(dir_reaction + "popcorn.jpg")
 
 
 @zote.command(name="praise", pass_context=True, aliases=["praisetillyourehollow", "praisetilyourehollow", "praisetil", "420praiseit"])
@@ -573,7 +578,7 @@ async def praise(ctx, *args):
     """Moss Prophet
     alt: praisetillyourehollow, praisetilyourehollow, praisetil, 420praiseit
     """
-    await zote.upload(dir_reaction + "/praise the light.jpg")
+    await zote.upload(dir_reaction + "praise the light.jpg")
 
 
 @zote.command(name="random", pass_context=True, aliases=["randomizer", "seed"])
@@ -593,7 +598,7 @@ async def randomizerseed(ctx, *args):
 @zote.command(name="shaw", pass_context=True, aliases=[])
 @logger("Shaw", "meme", ["zote"])
 async def shaw(ctx, *args):
-    await zote.upload(dir_reaction + "/imgonnashaw.jpg")
+    await zote.upload(dir_reaction + "imgonnashaw.jpg")
 
 
 @zote.command(name="squadgoals", pass_context=True, aliases=["squad", "tearsquad"])
@@ -602,13 +607,13 @@ async def squadgoals(ctx, *args):
     """Husk sentry squad
     alt: squad, tearsquad
     """
-    await zote.upload(dir_reaction + "/squad goals.png")
+    await zote.upload(dir_reaction + "squad goals.png")
 
 
 @zote.command(name="stealyogirl", pass_context=True, aliases=[])
 @logger("Steal Yo Girl", "meme", ["zote"])
 async def stealyogirl(ctx, *args):
-    await zote.upload(dir_reaction + "/stealyogirl.jpg")
+    await zote.upload(dir_reaction + "stealyogirl.jpg")
 
 
 @zote.command(name="steelsoul", pass_context=True, aliases=["darksouls", "danksouls", "defeated", "trialoffools"])
@@ -617,7 +622,7 @@ async def steelsoul(ctx, *args):
     """Defeated
     alt: darksouls, danksouls, defeated, trialoffools
     """
-    await zote.upload(dir_reaction + "/defeated.jpg")
+    await zote.upload(dir_reaction + "defeated.jpg")
 
 
 @zote.command(name="verupls", pass_context=True, aliases=[])
@@ -635,7 +640,36 @@ async def youfool(ctx, *args):
     """Xero
     alt: xero, fool
     """
-    await zote.upload(dir_reaction + "/you fool.png")
+    await zote.upload(dir_reaction + "you fool.png")
+
+
+#######
+# 420 #
+#######
+
+turn_it_off = False
+n = 0
+
+
+@zote.command(name="conradfixyourbot", pass_context=True, aliases=["suggest", "report", "ihate", "pleaseban"])
+@logger("CFYB", "general", ["grub"])
+async def report(ctx, *args):
+    if len(args) > 0:
+        s = args[0]
+        for e in args[1:]:
+            s += " " + e
+        add_report(s + " < {0} < {1}".format(ctx.message.author.name, ctx.message.author.id), n=config["n"]//150)
+        config["n"] += 1
+        if config["n"] % 5 == 0:
+            print("{0} LOGS SUBMITTED".format(config["n"]))
+
+
+@zote.command(name="off", pass_context=True, hidden=False)
+@logger("CFYB", "modonly", ["grub", "zote", "yes"])
+async def stahp(ctx, *args):
+    global turn_it_off
+    turn_it_off = not turn_it_off
+
 
 # sys.tracebacklimit = 1
 
@@ -647,8 +681,10 @@ while True:
     try:
         zote.run(inf.token())
     except Exception as e:
+
+        print(e)
         fails += 1
-        if fails >= 100:
+        if fails >= 100 or (e.__class__.__name__ == "RuntimeError"):
             sys.exit(1)
         else:
             print("ZOTE HAS CRASHED!! Will attempt to run again\n\n")
@@ -658,4 +694,3 @@ while True:
             print("    Zote, The Mighty")
             print("by Conrad @the_complexor")
             print("########################\n")
-

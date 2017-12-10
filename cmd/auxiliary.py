@@ -75,19 +75,18 @@ wiki_str = "http://hollowknight.wikia.com/wiki/"
 
 def wiki_search(query):
     try:
-        loc = 12
         query = query.replace(" ", "+")
         page = urllib.request.urlopen("{0}{1}".format(search, query)).readlines()
-        t = wiki_str.encode()
+        flag = "class=\"result-link\"".encode()
         links = list([])
-        for each in page:
-            if t in each:
-                links.append(each)
-                # print(each)
-        if no_results in links[loc]:
-            return "None found"
-        else:
-            out = links[loc].split('\"'.encode())[1]
-            return out.decode('utf-8')
+        # print(page)
+        for line in page:
+            if flag in line:
+                # print(line)
+                out = line.split('\"'.encode())
+                return out[1].decode("utf-8")
+        return "None found"
     except Exception as e:
+        # print(e)
+        # print("Problem!")
         return "None found"
