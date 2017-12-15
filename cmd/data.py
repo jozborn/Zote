@@ -38,7 +38,7 @@ def save(cfg: str):
 
 def add_report(report: str, n: int=0):
     try:
-        with open('data/reports/{0}.txt'.format(n), 'a+') as f:
+        with open('data/reports/{0}.zote'.format(n), 'a+') as f:
             f.write(report)
             f.write("\n")
     except UnicodeEncodeError as e:
@@ -63,7 +63,7 @@ def enter_contest(u_id: str):
     try:
         if u_id not in ENTRIES:
             ENTRIES.append(u_id)
-            with open("data/en.txt", "a") as f:
+            with open("data/en.zote", "a") as f:
                 f.write(u_id + "\n")
             return "added"
         else:
@@ -73,14 +73,14 @@ def enter_contest(u_id: str):
 
 
 def save_entries():
-    with open("data/en.txt", "w") as f:
+    with open("data/en.zote", "w") as f:
         for each in ENTRIES:
             f.write(each + "\n")
 
 
 def win_contest(u_id: str):
     WINNERS.append(u_id)
-    with open("data/win.txt", "a") as f:
+    with open("data/win.zote", "a") as f:
         f.write(u_id + "\n")
     save_entries()
     return True
