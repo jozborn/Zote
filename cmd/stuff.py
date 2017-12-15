@@ -98,6 +98,8 @@ cherry = discord.Emoji(
     roles=[],
     server=hk_server
 )
+yes = "✅"
+no = "❌"
 
 
 reactions = {}
@@ -112,7 +114,9 @@ reactions.update({
     "dableft": dableft,
     "dabright": dabright,
     "maggot": maggot,
-    "cherry": cherry})
+    "cherry": cherry,
+    "yes": yes,
+    "no": no})
 
 
 ##############
@@ -122,6 +126,7 @@ reactions.update({
 dir_img = "img/"
 dir_reaction = dir_img + "reaction/"
 dir_hj = dir_img + "hj/"
+dir_logs = "data/logs/"
 
 dir_mistake = dir_img + "mistake"
 mistakes = Multi(dir_mistake)

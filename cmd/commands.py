@@ -1,13 +1,11 @@
 import os.path
 import random as random_builtin
 import sys
-import traceback
 
 from discord.ext import commands
 
 # This line references the application token
-# Without revealing it on Github.
-# Remove this if you're implementing your own Zote Bot!
+# without revealing it on Github.
 import inf
 from auxiliary import *
 from init import *
@@ -17,13 +15,14 @@ def validator(category):
     try:
         def predicate(ctx):
             ch_name = ctx.message.channel.name
+            ch_id = ctx.message.channel.id
             u_id = ctx.message.author.id
 
             return u_id in config["mods"] \
                 or (category != "modonly"
                     and ch_name in config[category]
                     and u_id not in config["ignored"]
-                    and ch_name not in config["silenced"])
+                    and ch_id not in config["silenced"])
         return commands.check(predicate)
     except discord.ext.commands.CheckFailure:
         print("{0} command failed validation".format(category))
@@ -35,13 +34,17 @@ def logger(name, category, reaction):
 
         @validator(category)
         async def wrapped(ctx, *args):
-            log(name, ctx)
-            if isinstance(reaction, list):
-                for each in reaction:
-                    await zote.add_reaction(ctx.message, reactions[each])
-            else:
-                await zote.add_reaction(ctx.message, reactions[reaction])
-            await f(ctx, *args)
+            try:
+                log(name, ctx)
+                if isinstance(reaction, list):
+                    for each in reaction:
+                        await zote.add_reaction(ctx.message, reactions[each])
+                else:
+                    await zote.add_reaction(ctx.message, reactions[reaction])
+                await f(ctx, *args)
+            except Exception as exc:
+                with open(dir_logs + "error.zote", "a") as file:
+                    file.write(str(exc) + "\n")
         return wrapped
 
     return wrap
@@ -68,12 +71,12 @@ async def ignore(ctx, *args):
             await zote.say("Cannot ignore mods or admins!")
         elif a not in config["ignored"]:
             config["ignored"].append(a)
-            save()
+            save(config)
             print("Now ignoring %s" % a)
             await zote.say("Now ignoring <@%s>" % a)
         else:
             config["ignored"].remove(a)
-            save()
+            save(config)
             print("%s removed from ignore list" % a)
             await zote.say("Stopped ignoring <@%s>" % a)
     except discord.NotFound:
@@ -86,18 +89,20 @@ async def ignore(ctx, *args):
 @logger("Mod: silence channel", "modonly", ["grub"])
 async def silence(ctx, *args):
     a = args[0][2:len(args[0])-1]
+    print(a)
     if a not in config["silenced"]:
         config["silenced"].append(a)
         print(config["silenced"])
-        save()
+        save(config)
         print("Silenced #%s" % a)
         await zote.say("Silenced <#%s>" % a)
     else:
         config["silenced"].remove(a)
         print(config["silenced"])
-        save()
+        save(config)
         print("Unsilenced %s" % a)
         await zote.say("Unsilenced <#%s>" % a)
+
 
 @zote.command(name="ignorelist", pass_context=True, hidden=True)
 @logger("Mod: Ignore list", "modonly", ["grub"])
@@ -297,7 +302,7 @@ async def precept(ctx, at_loc=-1):
         config["precept#"] = (config["precept#"] + 1) % 57
         p = config["precepts"][config["precept#"]-1]
         await zote.say("Precept {0}: {1}".format(p[0], p[1]))
-        save()
+        save(config)
 
 
 #################
@@ -658,10 +663,11 @@ async def report(ctx, *args):
         s = args[0]
         for e in args[1:]:
             s += " " + e
-        add_report(s + " < {0} < {1}".format(ctx.message.author.name, ctx.message.author.id), n=config["n"]//150)
+        add_report(s + " < {0} < {1} < {2} < {3}".format(ctx.message.author.name, ctx.message.author.id, ctx.message.channel, ctx.message.timestamp), n=config["n"]//150)
         config["n"] += 1
         if config["n"] % 5 == 0:
             print("{0} LOGS SUBMITTED".format(config["n"]))
+        save(config)
 
 
 @zote.command(name="off", pass_context=True, hidden=False)
@@ -671,26 +677,85 @@ async def stahp(ctx, *args):
     turn_it_off = not turn_it_off
 
 
-# sys.tracebacklimit = 1
+############
+# GIVEAWAY #
+############
 
-fails = 0
+
+@zote.command(name="enter", pass_context=True, hidden=False)
+@logger("Holiday Entry", "hollowmas", [])
+async def enter(ctx, *args):
+    result = enter_contest(ctx.message.author.id)
+    if result == "already":
+        await zote.add_reaction(ctx.message, reactions["yes"])
+        await zote.send_message(ctx.message.author, "You are already entered in the Hollowmas Giveaway. You now have a chance to win a prize on each of the 12 days of Hollowmas!")
+        await zote.send_message(ctx.message.author, "\n\nThe Hollowmas Giveaway runs every day through December 24th. Winners will be tagged at 6AM AEDT in #hollowmas-giveaway!")
+    elif result == "added":
+        await zote.add_reaction(ctx.message, reactions["yes"])
+        await zote.send_message(ctx.message.author, "You are now entered in the Hollowmas Giveaway. You now have a chance to win a prize on each of the 12 days of Hollowmas!")
+        await zote.send_message(ctx.message.author, "\n\nThe Hollowmas Giveaway runs every day through December 24th. Winners will be tagged at 6AM AEDT in #hollowmas-giveaway!")
+        if len(ENTRIES) % 100 == 0:
+            await zote.say("<@{0}> is the {1}th person to enter the Hollowmas Giveaway!".format(ctx.message.author.id, len(ENTRIES)))
+    elif result == "error":
+        await zote.add_reaction(ctx.message, reactions["no"])
+        await zote.say("<@{0}> An error occurred. Please try to _enter again!")
+
+
+@zote.command(name="draw", pass_context=True, hidden=False)
+@logger("Holiday Drawing", "hollowmas", ["zote", "heart", "cherry"])
+async def draw(ctx, *args):
+    if len(ENTRIES) == 1:
+        s = ENTRIES.pop(0)
+        await zote.say("Congratulations <@{0}>! You are the winner!".format(s))
+    elif len(args) == 0:
+        found = False
+        while not found:
+            s = ENTRIES.pop(random.randint(0, len(ENTRIES) - 1))
+            if s not in WINNERS:
+                found = True
+        print(s + " not in winners?")
+        await zote.say("Congratulations <@{0}>! You are the winner!".format(s))
+        win_contest(s)
+    elif 1 <= int(args[0]) <= 10:
+        s = []
+        while len(s) < int(args[0]) or len(ENTRIES) > 0:
+            g = ENTRIES.pop(random.randint(0, len(ENTRIES) - 1))
+            print(g +" not in winners?")
+            if g not in s and g not in WINNERS:
+                s.append(g)
+            else:
+                ENTRIES.append(g)
+        r = "Congratulations to the winners:\n\n"
+        for each in s:
+            r += "<@{0}>\n".format(each)
+        await zote.say(r)
+        for each in s:
+            win_contest(each)
+    save_entries()
+
+
+@zote.command(name="check", pass_context=True, hidden=True, aliases=["checkentries"])
+@logger("See # Hollowmas Entries", "modonly", ["cherry"])
+async def check_entries(ctx, *args):
+    await zote.say("There are {0} entries in the Hollow-mas giveaway!".format(len(ENTRIES)))
+
+
+@zote.command(name="isentry", pass_context=True, hidden=True)
+@logger("Check for User Entry", "modonly", ["cherry"])
+async def is_entry(ctx, *args):
+    if len(args) > 0:
+        k = args[0][3:len(args[0]) - 1]if args[0][2] == "!" else args[0][2:len(args[0]) - 1]
+        print(args[0])
+        print(k)
+        await zote.say("<@{0}> is {1}entered in the Hollowmas Giveaway.".format(k, "" if k in ENTRIES else "not "))
+
 
 # If it causes errors
 while True:
-    # Replace inf.token() with your application token
     try:
+        # Replace inf.token() with your application token
         zote.run(inf.token())
     except Exception as e:
-
-        print(e)
-        fails += 1
-        if fails >= 100 or (e.__class__.__name__ == "RuntimeError"):
-            sys.exit(1)
-        else:
-            print("ZOTE HAS CRASHED!! Will attempt to run again\n\n")
-            with open('data/crash.zote', 'a') as file:
-                file.write(traceback.format_exc())
-            print("########################")
-            print("    Zote, The Mighty")
-            print("by Conrad @the_complexor")
-            print("########################\n")
+        with(dir_logs + "error.zote", "a") as f:
+            f.write(str(e) + "\n")
+        sys.exit(1)

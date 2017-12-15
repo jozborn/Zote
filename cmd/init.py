@@ -11,4 +11,10 @@ zote = Bot(command_prefix=pre)
 zote.id = "297840101944459275"
 zote.remove_command("help")
 
+with open("data/en.txt", "r") as f:
+    for each in f.readlines():
+        ENTRIES.append(each[:len(each) - 1])
+with open("data/win.txt", "r") as f:
+    for each in f.readlines():
+        WINNERS.append(each[:len(each) - 1])
 config = load()
