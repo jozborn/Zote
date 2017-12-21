@@ -56,3 +56,4 @@ config.json
 __pycache__
 *.zote
 data
+data_backup

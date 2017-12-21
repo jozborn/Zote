@@ -1,14 +1,12 @@
 import urllib.request
 
-from discord.ext.commands.errors import CommandInvokeError
-
 from stuff import *
 
-ch_general = "<#283467363729408000>"
-ch_spoilers = "<#283680756159741953>"
-ch_art = "<#301227786658381825>"
-ch_meme = "<#297468195026239489>"
-ch_help = "<#349116318865424384>"
+ch_general = "<#{0}>".format(hk_qoid.get("hk channels").get("general"))
+ch_spoilers = "<#{0}>".format(hk_qoid.get("hk channels").get("discussion"))
+ch_art = "<#{0}>".format(hk_qoid.get("hk channels").get("art"))
+ch_meme = "<#{0}>".format(hk_qoid.get("hk channels").get("meme"))
+ch_help = "<#{0}>".format(hk_qoid.get("hk channels").get("help"))
 
 
 def general_psa():
@@ -50,7 +48,7 @@ def helptext():
     return help_text
 
 
-def randomizerTaunt():
+def randomizer_taunt():
     possible = ["May you find Mantis Claw in King's Pass.",
                 "If all else fails, just shade skip.",
                 "If it takes more than 5 hours you should probably reset.",
@@ -66,7 +64,8 @@ def enemy_name(*args):
     r = args[0][0].capitalize()
     for each in args[0][1:]:
         r = "{0} {1}".format(r, each.capitalize())
-    return "{0}{1}.png".format(dir_hj, r)
+    return img["hj"][r + ".png"]
+
 
 search = "http://hollowknight.wikia.com/wiki/Special:Search?query="
 no_results = "http://hollowknight.wikia.com/wiki/Special:Search".encode()
