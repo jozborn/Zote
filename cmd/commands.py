@@ -49,7 +49,7 @@ def logger(name, category, reaction):
 
 @zote.command(name="help", pass_context=True, hidden=True)
 async def help(ctx):
-    await zote.say("See pinned messages in {0} for a list of commands! (contains spoilers)".format(hkq["ch"]["meme"]))
+    await zote.say("See pinned messages in {0} for a list of commands! (contains spoilers)".format(config["ch"]["meme"]))
 
 ##############
 """MOD-ONLY"""
@@ -67,7 +67,7 @@ async def ignore(ctx, *args):
             print("Cannot ignore moderators or administrators")
             await zote.say("Cannot ignore mods or admins!")
         elif a not in config["ignored"]:
-            config["ignored"].append(a)
+            config["ignored"].add_new(a)
             config.save()
             print("Now ignoring %s" % a)
             await zote.say("Now ignoring <@%s>" % a)
@@ -88,7 +88,7 @@ async def silence(ctx, *args):
     a = args[0][2:len(args[0])-1]
     print(a)
     if a not in config["silenced"]:
-        config["silenced"].append(a)
+        config["silenced"].add_new(tag=a)
         print(config["silenced"])
         config.save()
         print("Silenced #%s" % a)
@@ -175,7 +175,7 @@ async def clear(ctx, *args):
 @logger("Help channel", "modonly", ["happygrub"])
 async def helpchannel(ctx, *args):
     """ help channel text"""
-    cha = zote.get_channel(hkq["ch"]["help"])
+    cha = zote.get_channel(config["ch"]["help"])
     LOGS = zote.logs_from(cha, limit=100)
     while LOGS.__sizeof__() > 0:
         pinned_count = 0
@@ -247,7 +247,7 @@ async def spoilers(ctx, *args):
 async def splrs(ctx, *args):
     """ A friendly reminder for #general"""
     await zote.say("**Reminder**: Please avoid any discussion of content past the Forgotten Crossroads! Discuss details"
-                   + " in {0} or {1}".format(hkq["ch"]["help"], hkq["ch"]["discussion"]))
+                   + " in {0} or {1}".format(config["ch"]["help"], config["ch"]["discussion"]))
 
 
 @zote.command(name="wiki", pass_context=True, aliases=["askzote", "<:dunq:335555573481472000>"])
@@ -754,6 +754,11 @@ async def is_entry(ctx, *args):
         print(args[0])
         print(k)
         await zote.say("<@{0}> is {1}entered in the Hollowmas Giveaway.".format(k, "" if k in ENTRIES else "not "))
+
+
+################
+# END GIVEAWAY #
+################
 
 
 while True:

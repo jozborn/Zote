@@ -4,29 +4,9 @@ import random
 import time
 import qoid
 import urllib.request
-import discord
-
-with open("data\server.cxr", "r") as f:
-    s = [x.strip("\n") for x in f.readlines()]
-    hkq = qoid.Bill("server", s)
 
 img_root = "img/"
 dir_logs = "data/log/"
-
-_frame = [e.tag for e in hkq["cfg frame"]]
-
-reactions = {}
-
-for each in hkq["hk emoji"]:
-    d = discord.Emoji(
-        require_colons=True, managed=False,
-        name=each.tag, id=each.val,
-        server=hkq["init"]["server"]
-    )
-    reactions.update({each.tag: d})
-
-for each in hkq["discord emoji"]:
-    reactions.update({each.tag: chr(int(each.val))})
 
 
 class Config(object):
@@ -34,12 +14,7 @@ class Config(object):
     def __init__(self):
         self.data = {}
         with open('data/config.cxr', 'r', encoding='utf-8') as f:
-            data = qoid.Bill("Config", [x.strip("\n") for x in f.readlines()])
-            for key in _frame:
-                if key == "precepts":
-                    self.data[key] = [e.tag + ": " + e.val for e in data[key]]
-                else:
-                    self.data[key] = data[key].tags()
+            self.data = qoid.Bill("Config", [x.strip("\n") for x in f.readlines()])
 
     def __getitem__(self, item):
         return self.data[item]
@@ -48,19 +23,10 @@ class Config(object):
         self.data[key] = value
 
     def __str__(self):
-        out = ""
-        for each in self.data.keys():
-            out += each + ": " + str(self.data.get(each)) + "\n"
-        return out
+        return str(self.data)
 
     def save(self):
-        with open('data/config.cxr', 'w') as f:
-            for e in self.data.keys():
-                f.write("#{0}\n".format(e))
-                for k in self.data[e]:
-                    f.write("{0}\n".format(k))
-                f.write("\n")
-            f.write("\n")
+        self.data.save('data', echo=False)
 
 
 class ImgFolder(object):
@@ -91,6 +57,9 @@ class ImgDir(object):
 
     def r(self, item):
         return self.all[item].r()
+
+
+config = Config()
 
 
 def add_report(report: str):
@@ -146,7 +115,7 @@ def general_psa():
     s += "If you need help with a specific portion of the game, ask in {1} and someone will answer.\n\n"
     s += "If you wish to talk about the rest of the game or the lore or such, {2}\n\n"
     s += "If you've drawn something or would like to talk about the art, {3}.\n\n"
-    return s.format(hkq["ch"]["general"], hkq["ch"]["help"], hkq["ch"]["discussion"], hkq["ch"]["art"])
+    return s.format(config["ch"]["general"], config["ch"]["help"], config["ch"]["discussion"], config["ch"]["art"])
 
 
 def improve():
@@ -154,7 +123,7 @@ def improve():
     s += "Members of the server can offer tips on charms, upgrades, and strategies for "
     s += "any part of the game.\n\n For *spoiler-lite* help, see {0}.\n\n"
     s += "For spoiler-heavy details, see {1} (you have been warned!)"
-    return s.format(hkq["ch"]["help"], hkq["ch"]["discussion"])
+    return s.format(config["ch"]["help"], config["ch"]["discussion"])
 
 
 def modtext():
@@ -166,7 +135,7 @@ def modtext():
     s += "**clearzotes** [optional amount x]: deletes all _commands and posts from Zote, or the X most recent ones\n\n"
     s += "**helpchannel**: clears all messages in the help channel and reposts the opening help message.\n\n"
     s += "**ban**: reaction image of the False Knight's Banhammer (not an actual ban!)\n\n"
-    return s.format(hkq["init"]["pre"])
+    return s.format(config["init"]["pre"])
 
 
 def helptext():
