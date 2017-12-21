@@ -109,20 +109,26 @@ def wiki_search(query):
 
 
 def general_psa():
-    s = "PSA: {0} is a spoiler-free channel.\n\n"
+    s = "PSA: <#{0}> is a spoiler-free channel.\n\n"
     s += "This means no discussions past Crossroads.\n\n"
     s += "If it requires progressing past Crossroads to unlock inside Crossroads, don't talk about it here.\n\n"
-    s += "If you need help with a specific portion of the game, ask in {1} and someone will answer.\n\n"
-    s += "If you wish to talk about the rest of the game or the lore or such, {2}\n\n"
-    s += "If you've drawn something or would like to talk about the art, {3}.\n\n"
+    s += "If you need help with a specific portion of the game, ask in <#{1}> and someone will answer.\n\n"
+    s += "If you wish to talk about the rest of the game or the lore or such, <#{2}>\n\n"
+    s += "If you've drawn something or would like to talk about the art, <#{3}>.\n\n"
     return s.format(config["ch"]["general"], config["ch"]["help"], config["ch"]["discussion"], config["ch"]["art"])
 
 
+def splr_lrt():
+    s = "**Reminder**: Please avoid any discussion of content past the Forgotten Crossroads! Discuss details"
+    s += " in <#{0}> or <#{1}>"
+    return s.format(config["ch"]["help"], config["ch"]["discussion"])
+
+
 def improve():
-    s = "If you are stuck on a boss or don't know where to go, you can ask for tips in {0} and {1}! "
+    s = "If you are stuck on a boss or don't know where to go, you can ask for tips in <#{0}> and <#{1}>! "
     s += "Members of the server can offer tips on charms, upgrades, and strategies for "
-    s += "any part of the game.\n\n For *spoiler-lite* help, see {0}.\n\n"
-    s += "For spoiler-heavy details, see {1} (you have been warned!)"
+    s += "any part of the game.\n\n For *spoiler-lite* help, see <#{0}>.\n\n"
+    s += "For spoiler-heavy details, see <#{1}> (you have been warned!)"
     return s.format(config["ch"]["help"], config["ch"]["discussion"])
 
 
@@ -135,7 +141,8 @@ def modtext():
     s += "**clearzotes** [optional amount x]: deletes all _commands and posts from Zote, or the X most recent ones\n\n"
     s += "**helpchannel**: clears all messages in the help channel and reposts the opening help message.\n\n"
     s += "**ban**: reaction image of the False Knight's Banhammer (not an actual ban!)\n\n"
-    return s.format(config["init"]["pre"])
+    return s
+    # return s.format(config["init"]["pre"])
 
 
 def helptext():
@@ -143,8 +150,8 @@ def helptext():
     help_text += "The channel is cleared every so often or upon request to further reduce any chance of unwanted spoilers. Tag @ Mods if the channel needs to be cleared.\n\n"
     help_text += "If you're interested in spoiler-free information about the final boss/ending or the Hidden Dreams update, check the Google Drive link in the channel description.\n\n"
     help_text += "If you just need more information about a particular enemy, boss, or charm, Zote has a built-in wiki search command. For example, try:\n\n"
-    help_text += "_wiki Dirtmouth"
-    return help_text
+    help_text += "{0}wiki Dirtmouth"
+    return help_text.format(config["init"]["pre"])
 
 
 def randomizer_taunt():

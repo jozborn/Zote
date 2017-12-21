@@ -132,7 +132,9 @@ async def clearzotes(ctx, *args):
             num = -1
     while -1 == num or (num > count != prev_count):
         prev_count = count
+        print("getting logs")
         async for message in zote.logs_from(zote.get_channel(ctx.message.channel.id), limit=1000):
+            print("have log")
             if message.author.id == zote.id or message.content.startswith('_'):
                 await zote.delete_message(message)
                 count += 1
@@ -236,18 +238,17 @@ async def resources(ctx, *args):
 
 
 @zote.command(name="spoilers", pass_context=True, aliases=["nospoilers", "spoiler", "spoileralert"])
-@logger("Spoiler Alert", "general", ["happygrub"])
+@logger("Spoiler Alert", "spoilers", ["happygrub"])
 async def spoilers(ctx, *args):
     """ A friendly reminder for #general"""
     await zote.say(general_psa())
 
 
 @zote.command(name="splrs", pass_context=True, aliases=["psa"])
-@logger("Splr lrt", "general", ["happygrub"])
+@logger("Splr lrt", "spoilers", ["happygrub"])
 async def splrs(ctx, *args):
     """ A friendly reminder for #general"""
-    await zote.say("**Reminder**: Please avoid any discussion of content past the Forgotten Crossroads! Discuss details"
-                   + " in {0} or {1}".format(config["ch"]["help"], config["ch"]["discussion"]))
+    await zote.say(splr_lrt())
 
 
 @zote.command(name="wiki", pass_context=True, aliases=["askzote", "<:dunq:335555573481472000>"])
@@ -273,19 +274,23 @@ async def wiki(ctx, *args):
 
 @zote.command(name="precept", pass_context=True, aliases=["wisdom", "<:zote:371947495330414595>"])
 @logger("Precepts of Zote", "ref", ["zote"])
-async def precept(ctx, at_loc=-1):
+async def precept(ctx, *args):
     """Hear the precepts of Zote!
 
      Specify a number from 1 to 57
      for a specific precept,
      or hear them in order.
     """
-    if 1 <= int(at_loc) <= 57:
-        p = config["precepts"][int(at_loc) - 1]
+    try:
+        p = config["precepts"][(int(args[0]) - 1) % 57]
         await zote.say("Precept {0}".format(p))
-    else:
-        p = config["precepts"][random_builtin.randint(0,56)]
+    except Exception as e:
+        current = config["init"]
+        p = config["precepts"][int(current["precept#"])]
         await zote.say("Precept {0}".format(p))
+
+        pr_num = current["precept#"]
+        current.set(index=current.index(current.find("precept#")), this=qoid.Property("precept#", str((int(pr_num) + 1) % 57)))
         config.save()
 
 
