@@ -7,6 +7,7 @@ from discord.ext import commands
 # without revealing it on Github.
 import inf
 from init import *
+from contest import *
 
 
 def validator(category):
@@ -48,7 +49,7 @@ def logger(name, category, reaction):
 
 @zote.command(name="help", pass_context=True, hidden=True)
 async def help(ctx):
-    await zote.say("See pinned messages in {0} for a list of commands! (contains spoilers)".format(ch_meme))
+    await zote.say("See pinned messages in {0} for a list of commands! (contains spoilers)".format(hkq["ch"]["meme"]))
 
 ##############
 """MOD-ONLY"""
@@ -174,7 +175,7 @@ async def clear(ctx, *args):
 @logger("Help channel", "modonly", ["happygrub"])
 async def helpchannel(ctx, *args):
     """ help channel text"""
-    cha = zote.get_channel(ch_help)
+    cha = zote.get_channel(hkq["ch"]["help"])
     LOGS = zote.logs_from(cha, limit=100)
     while LOGS.__sizeof__() > 0:
         pinned_count = 0
@@ -246,7 +247,7 @@ async def spoilers(ctx, *args):
 async def splrs(ctx, *args):
     """ A friendly reminder for #general"""
     await zote.say("**Reminder**: Please avoid any discussion of content past the Forgotten Crossroads! Discuss details"
-                   + " in {0} or {1}".format(ch_help, ch_spoilers))
+                   + " in {0} or {1}".format(hkq["ch"]["help"], hkq["ch"]["discussion"]))
 
 
 @zote.command(name="wiki", pass_context=True, aliases=["askzote", "<:dunq:335555573481472000>"])
@@ -281,11 +282,10 @@ async def precept(ctx, at_loc=-1):
     """
     if 1 <= int(at_loc) <= 57:
         p = config["precepts"][int(at_loc) - 1]
-        await zote.say("Precept {0}: {1}".format(p[0], p[1]))
+        await zote.say("Precept {0}".format(p))
     else:
-        config["precept#"] = (config["precept#"] + 1) % 57
-        p = config["precepts"][config["precept#"]-1]
-        await zote.say("Precept {0}: {1}".format(p[0], p[1]))
+        p = config["precepts"][random_builtin.randint(0,56)]
+        await zote.say("Precept {0}".format(p))
         config.save()
 
 
@@ -298,11 +298,17 @@ async def precept(ctx, at_loc=-1):
 @logger("Hunter's Journal Icons", "ref", ["zote"])
 async def enemy(ctx, *args):
     """See enemy icons! Shows Zote by default, but specify the enemy name (e.g Primal Aspid) to see its icon."""
-    fname = enemy_name(args)
-    if os.path.isfile(fname):
-        await zote.upload(fname)
+    if len(args) == 0:
+        await zote.upload(img["hj"]["Zote.png"])
     else:
-        await zote.add_reaction(ctx.message, reactions["primalaspid"])
+        r = args[0].capitalize()
+        for each in args[1:]:
+            r = "{0} {1}".format(r, each.capitalize())
+        fname = img["hj"][r + ".png"]
+        if os.path.isfile(fname):
+            await zote.upload(fname)
+        else:
+            await zote.add_reaction(ctx.message, reactions["primalaspid"])
 
 ##########
 # MULTIS #
@@ -643,10 +649,7 @@ async def report(ctx, *args):
         s = args[0]
         for e in args[1:]:
             s += " " + e
-        add_report(s + " < {0} < {1} < {2} < {3}".format(ctx.message.author.name, ctx.message.author.id, ctx.message.channel, ctx.message.timestamp), n=config["n"]//150)
-        config["n"] += 1
-        if config["n"] % 5 == 0:
-            print("{0} LOGS SUBMITTED".format(config["n"]))
+        add_report(s + " < {0} < {1} < {2} < {3}".format(ctx.message.author.name, ctx.message.author.id, ctx.message.channel, ctx.message.timestamp))
         config.save()
 
 
