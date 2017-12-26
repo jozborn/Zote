@@ -7,7 +7,6 @@ from discord.ext import commands
 # without revealing it on Github.
 import inf
 from init import *
-from contest import *
 
 
 def validator(category):
@@ -17,7 +16,8 @@ def validator(category):
         u_id = ctx.message.author.id
 
         return u_id in config["mods"] \
-            or (category != "modonly"
+            or (category != "modonly" and u_id in config["devs"]) \
+            or (category != "modonly" and category != "devplus"
                 and ch_name in config[category]
                 and u_id not in config["ignored"]
                 and ch_id not in config["silenced"])
@@ -63,11 +63,12 @@ async def ignore(ctx, *args):
     """
     try:
         a = args[0]
+        a = a[2:len(a)-1]
         if a in config["mods"]:
             print("Cannot ignore moderators or administrators")
             await zote.say("Cannot ignore mods or admins!")
         elif a not in config["ignored"]:
-            config["ignored"].add_new(a)
+            config["ignored"].add_new(tag=a, val=None)
             config.save()
             print("Now ignoring %s" % a)
             await zote.say("Now ignoring <@%s>" % a)
@@ -86,16 +87,13 @@ async def ignore(ctx, *args):
 @logger("Mod: silence channel", "modonly", ["happygrub"])
 async def silence(ctx, *args):
     a = args[0][2:len(args[0])-1]
-    print(a)
     if a not in config["silenced"]:
-        config["silenced"].add_new(tag=a)
-        print(config["silenced"])
+        config["silenced"].add_new(tag=a, val=None)
         config.save()
         print("Silenced #%s" % a)
         await zote.say("Silenced <#%s>" % a)
     else:
         config["silenced"].remove(a)
-        print(config["silenced"])
         config.save()
         print("Unsilenced %s" % a)
         await zote.say("Unsilenced <#%s>" % a)
@@ -211,7 +209,8 @@ async def gitgud(ctx, *args):
         await zote.say(improve())
     else:
         chance = random_builtin.randint(0, 10)
-        if chance <= 1:
+        if chance <= 1 or ctx.message.author.id in config["mods"] or ctx.message.author.id in config["woke"]:
+            await zote.add_reaction(ctx.message, reactions["hollowwoke"])
             await zote.upload(img["reaction"]["gitwoke.jpg"])
         else:
             await zote.upload(img["reaction"]["gitgud.png"])
@@ -294,6 +293,7 @@ async def precept(ctx, *args):
         config.save()
 
 
+
 #################
 """ENEMY ICONS"""
 #################
@@ -320,7 +320,7 @@ async def enemy(ctx, *args):
 ##########
 
 
-@zote.command(name="meme", pass_context=True, aliases=["fuckmeupfam", "gimmethatmeme", "<:hollowomg:337314365323870209>", "<:hollowlenny:337314901670232064>", "<:corny:309365508682285057>", "<:hollowface:324349140920434690>", "<:hollowwow:343784030828888065>", "<:intenseface:331674362509787136>", "<:hollowwoke:344348211433177088>", "jetfuelcantmeltdankmemes"])
+@zote.command(name="meme", pass_context=True, aliases=["hwhilst", "whilst", "<:hollowomg:337314365323870209>", "<:hollowlenny:337314901670232064>", "<:corny:309365508682285057>", "<:hollowface:324349140920434690>", "<:hollowwow:343784030828888065>", "<:intenseface:331674362509787136>", "<:hollowwoke:344348211433177088>"])
 @logger("Meme", "supermeme", ["zote", "corny", "primalaspid", "happygrub"])
 async def meme(ctx, *args):
     await zote.upload(img.r("meme"))
@@ -332,10 +332,22 @@ async def goodmemeplease(ctx, *args):
     await zote.upload(img.r("meme"))
 
 
+@zote.command(name="fuckmeupfam", pass_context=True, aliases=["gagglemeupgritten"])
+@logger("FMUF", "supermeme", ["grimm", "primalaspid", "zote"])
+async def fmuf(ctx, *args):
+    await zote.upload(img.r("meme"))
+
+
 @zote.command(name="beelove", pass_context=True, aliases=["🐝"])
 @logger("Bee Love", "meme", ["bee", "heart", "zote"])
 async def beelove(ctx, *args):
     await zote.upload(img.r("beelove"))
+
+
+@zote.command(name="comic", pass_context=True, aliases=["psych"])
+@logger("Psych Comic", "supermeme", ["zote"])
+async def comic(ctx, *args):
+    await zote.upload(img.r("psych"))
 
 
 @zote.command(name="grublove", pass_context=True, aliases=["<:happygrub:291831002874249216>"])
@@ -391,7 +403,7 @@ async def aspid(ctx, *args):
 
 
 @zote.command(name="ban", pass_context=True, aliases=["b4n", "modpoweractivate", "modpowersactivate", "bourgeoisie", "banhammer"])
-@logger("Banhammer", "modonly", ["happygrub", "heart", "primalaspid"])
+@logger("Banhammer", "devplus", ["happygrub", "heart", "primalaspid"])
 async def ban(ctx, *args):
     await zote.upload(img["reaction"]["banhammer.png"])
 
@@ -435,7 +447,13 @@ async def disapprove(ctx, *args):
     await zote.upload(img["reaction"]["disapprove.png"])
 
 
-@zote.command(name="elderbug", pass_context=True, aliases=["guessilldie", "guilttrip", "<:elderbug:337323354589757451>"])
+@zote.command(name="draw", pass_context=True, hidden=False)
+@logger("Holiday Entry", "supermeme", ["teamcherry"])
+async def draw(ctx, *args):
+    await zote.say("Congratulations <@{0}>! You are the winner!".format(ctx.message.author.id))
+
+
+@zote.command(name="elderbug", pass_context=True, aliases=["guessilldie", "<:elderbug:337323354589757451>"])
 @logger("Elderbug", "general", ["zote"])
 async def elderbug(ctx, *args):
     """Elderbug guilt trip
@@ -477,7 +495,7 @@ async def grimm(ctx, *args):
     await zote.upload(img["reaction"]["grimm.gif"])
 
 
-@zote.command(name="grubfather", pass_context=True, aliases=["onthisthedaymydaughteristobemarried", "myeh", "<:grubfather:341180809228845056>"])
+@zote.command(name="grubfather", pass_context=True, aliases=["onthisthedaymydaughteristobemarried", "<:grubfather:341180809228845056>"])
 @logger("Grubfather", "meme", ["happygrub"])
 async def grubfather(ctx, *args):
     """No respect
@@ -486,13 +504,13 @@ async def grubfather(ctx, *args):
     await zote.upload(img["reaction"]["grubfather.jpg"])
 
 
-@zote.command(name="hallonite", pass_context=True, aliases=["holo", "holonite", "loog"])
+@zote.command(name="hallonite", pass_context=True, aliases=["holo", "holonite", "holonit", "loog"])
 @logger("Is Halo Nit ok", "meme", ["zote"])
 async def hallonite(ctx, *args):
     """is halo nit logo k
     alt: holo, holonite, loog
     """
-    await zote.upload(img["reaction"]["hallonite.jpg"])
+    await zote.upload(img["reaction"]["holonit poteiga.png"])
 
 
 @zote.command(name="hollowdoot", pass_context=True, aliases=["doot", "dootdoot"])
@@ -516,7 +534,7 @@ async def hornetspin(ctx, *args):
     await zote.upload(img["reaction"]["hornetspin.gif"])
 
 
-@zote.command(name="hklogic", pass_context=True, aliases=["stabyourself", "stab", "stabfirst", "youfirst", "<:hollowknice:300572689616076801>"])
+@zote.command(name="hklogic", pass_context=True, aliases=["<:hollowknice:300572689616076801>"])
 @logger("HK Logic", "meme", ["zote"])
 async def hklogic(ctx, *args):
     await zote.upload(img["reaction"]["stabyourselffirst.jpg"])
@@ -557,7 +575,7 @@ async def pervertedlight(ctx, *args):
     await zote.upload(img["reaction"]["perverted light.gif"])
 
 
-@zote.command(name="pickle", pass_context=True, aliases=[""])
+@zote.command(name="pickle", pass_context=True, aliases=[])
 @logger("No Pickle Command", "supermeme", ["pick", "l"])
 async def pickle(ctx, *args):
     await zote.upload(img["reaction"]["pickle.jpg"])
@@ -571,7 +589,7 @@ async def popcorn(ctx, *args):
     await zote.upload(img["reaction"]["popcorn.jpg"])
 
 
-@zote.command(name="praise", pass_context=True, aliases=["praisetillyourehollow", "praisetilyourehollow", "praisetil", "420praiseit"])
+@zote.command(name="praise", pass_context=True, aliases=["420praiseit"])
 @logger("Praise", "meme", ["zote"])
 async def praise(ctx, *args):
     """Moss Prophet
@@ -657,114 +675,9 @@ async def report(ctx, *args):
         add_report(s + " < {0} < {1} < {2} < {3}".format(ctx.message.author.name, ctx.message.author.id, ctx.message.channel, ctx.message.timestamp))
         config.save()
 
-
-############
-# GIVEAWAY #
-############
-
-
-@zote.command(name="enter", pass_context=True, hidden=False)
-@logger("Holiday Entry", "hollowmas", [])
-async def enter(ctx, *args):
-    result = enter_contest(ctx.message.author.id)
-    if result == "already":
-        await zote.add_reaction(ctx.message, reactions["yes"])
-        await zote.send_message(ctx.message.author, "You are already entered in the Hollowmas Giveaway. You now have a chance to win a prize on each of the 12 days of Hollowmas!")
-        await zote.send_message(ctx.message.author, "\n\nThe Hollowmas Giveaway runs every day through December 24th. Winners will be tagged at 6AM AEDT in #hollowmas-giveaway!")
-    elif result == "added":
-        await zote.add_reaction(ctx.message, reactions["yes"])
-        await zote.send_message(ctx.message.author, "You are now entered in the Hollowmas Giveaway. You now have a chance to win a prize on each of the 12 days of Hollowmas!")
-        await zote.send_message(ctx.message.author, "\n\nThe Hollowmas Giveaway runs every day through December 24th. Winners will be tagged at 6AM AEDT in #hollowmas-giveaway!")
-        if len(ENTRIES) % 100 == 0:
-            await zote.say("<@{0}> is the {1}th person to enter the Hollowmas Giveaway!".format(ctx.message.author.id, len(ENTRIES)))
-    elif result == "error":
-        await zote.add_reaction(ctx.message, reactions["no"])
-        await zote.say("<@{0}> An error occurred. Please try to _enter again!")
-
-
-@zote.command(name="draw", pass_context=True, hidden=False)
-@logger("Holiday Drawing", "modonly", [])
-async def draw(ctx, *args):
-    if len(ENTRIES) == 1:
-        s = ENTRIES.pop(0)
-        await zote.say("Congratulations <@{0}>! You are the winner!".format(s))
-    elif len(args) == 0:
-        found = False
-        while not found:
-            s = ENTRIES.pop(random.randint(0, len(ENTRIES) - 1))
-            if s not in WINNERS and s not in config["mods"]:
-                found = True
-        print("{0} selected".format(s))
-        await zote.say("Congratulations <@{0}>! You are the winner!".format(s))
-        win_contest(s)
-    elif 1 <= int(args[0]) <= 10:
-        s = []
-        while len(s) < int(args[0]) and len(ENTRIES) > 0:
-            g = ENTRIES.pop(random.randint(0, len(ENTRIES) - 1))
-            if g not in s and g not in WINNERS and g not in config["mods"]:
-                s.append(g)
-            else:
-                ENTRIES.append(g)
-        r = "Congratulations to the winners:\n\n"
-        for each in s:
-            r += "<@{0}>\n".format(each)
-        await zote.say(r)
-        for each in s:
-            win_contest(each)
-
-
-@zote.command(name="drawspecial", pass_context=True, hidden=False)
-@logger("Holiday Drawing", "modonly", [])
-async def draw2(ctx, *args):
-    if len(ENTRIES) == 1:
-        s = ENTRIES.pop(0)
-        await zote.say("Congratulations <@{0}>! You are the winner!".format(s))
-    elif len(args) == 0:
-        s = ""
-        found = False
-        while not found:
-            s = ENTRIES[random.randint(0, len(ENTRIES) - 1)]
-            if s not in WINNERS2:
-                found = True
-        print("{0} selected".format(s))
-        await zote.say("Congratulations <@{0}>! You are the winner!".format(s))
-        win_contest(s)
-    elif 1 <= int(args[0]) <= 10:
-        s = []
-        while len(s) < int(args[0]) and len(ENTRIES) > 0:
-            g = ENTRIES[random.randint(0, len(ENTRIES) - 1)]
-            if g not in s and g not in WINNERS2:
-                s.append(g)
-            else:
-                ENTRIES.append(g)
-        r = "Congratulations to each of the winners:\n\n"
-        for each in s:
-            r += "<@{0}>\n".format(each)
-        await zote.say(r)
-        for each in s:
-            win_contest2(each)
-
-
-@zote.command(name="check", pass_context=True, hidden=True, aliases=["checkentries"])
-@logger("See # Hollowmas Entries", "modonly", ["teamcherry"])
-async def check_entries(ctx, *args):
-    await zote.say("There are {0} entries in the Hollow-mas giveaway!".format(len(ENTRIES)))
-
-
-@zote.command(name="isentry", pass_context=True, hidden=True)
-@logger("Check for User Entry", "modonly", ["teamcherry"])
-async def is_entry(ctx, *args):
-    if len(args) > 0:
-        k = args[0][3:len(args[0]) - 1]if args[0][2] == "!" else args[0][2:len(args[0]) - 1]
-        print(args[0])
-        print(k)
-        await zote.say("<@{0}> is {1}entered in the Hollowmas Giveaway.".format(k, "" if k in ENTRIES else "not "))
-
-
-################
-# END GIVEAWAY #
-################
-
+####################
+# GLAD THAT'S OVER #
+####################
 
 while True:
     print("Initializing...")
