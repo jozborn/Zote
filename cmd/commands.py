@@ -15,12 +15,17 @@ def validator(category):
         ch_id = ctx.message.channel.id
         u_id = ctx.message.author.id
 
-        return u_id in config["mods"] \
-            or (category != "modonly" and u_id in config["devs"]) \
-            or (category != "modonly" and category != "devplus"
-                and ch_name in config[category]
-                and u_id not in config["ignored"]
-                and ch_id not in config["silenced"])
+        if category == "devplus":
+            return u_id in config["devs"] or u_id in config["mods"]
+        elif isinstance(ctx.message.channel, discord.PrivateChannel) or ctx.message.server.id != config["init"]["server"]:
+            return category != "modonly"
+        elif ch_name in config[category]:
+            return u_id not in config["ignored"] and ch_id not in config["silenced"]
+        elif category != "modonly":
+            return u_id in config["devs"] or u_id in config["mods"]
+        else:
+            return u_id in config["mods"]
+
     return commands.check(predicate)
 
 
@@ -32,11 +37,12 @@ def logger(name, category, reaction):
         async def wrapped(ctx, *args):
             try:
                 log(name, ctx)
-                if isinstance(reaction, list):
-                    for each in reaction:
-                        await zote.add_reaction(ctx.message, reactions[each])
-                else:
-                    await zote.add_reaction(ctx.message, reactions[reaction])
+                if ctx.message.server.id == config["init"]["server"]:
+                    if isinstance(reaction, list):
+                        for each in reaction:
+                            await zote.add_reaction(ctx.message, reactions[each])
+                    else:
+                        await zote.add_reaction(ctx.message, reactions[reaction])
                 await f(ctx, *args)
             except Exception as exc:
                 with open(dir_logs + "error.zote", "a") as file:
@@ -49,7 +55,7 @@ def logger(name, category, reaction):
 
 @zote.command(name="help", pass_context=True, hidden=True)
 async def help(ctx):
-    await zote.say("See pinned messages in {0} for a list of commands! (contains spoilers)".format(config["ch"]["meme"]))
+    await zote.say("See the pins in <#{0}> for a list of commands! (contains spoilers)".format(config["ch"]["meme"]))
 
 ##############
 """MOD-ONLY"""
@@ -130,9 +136,7 @@ async def clearzotes(ctx, *args):
             num = -1
     while -1 == num or (num > count != prev_count):
         prev_count = count
-        print("getting logs")
         async for message in zote.logs_from(zote.get_channel(ctx.message.channel.id), limit=1000):
-            print("have log")
             if message.author.id == zote.id or message.content.startswith('_'):
                 await zote.delete_message(message)
                 count += 1
@@ -174,7 +178,7 @@ async def clear(ctx, *args):
 @zote.command(name="helpchannel", pass_context=True, hidden=True, aliases=[])
 @logger("Help channel", "modonly", ["happygrub"])
 async def helpchannel(ctx, *args):
-    """ help channel text"""
+    """Clears the help channel"""
     cha = zote.get_channel(config["ch"]["help"])
     LOGS = zote.logs_from(cha, limit=100)
     while LOGS.__sizeof__() > 0:
@@ -195,6 +199,11 @@ async def helpchannel(ctx, *args):
     print("Messages cleared from help")
 
 
+@zote.command(name="members", pass_context=True, hidden=True, aliases=["membercount"])
+@logger("Member count", "modonly", ["happygrub"])
+async def member_count(ctx, *args):
+    await zote.say("There are **{0}** members in the Hollow Knight server.".format(ctx.message.server.member_count))
+
 ###############################
 """CHANNEL-SPECIFIC COMMANDS"""
 ###############################
@@ -207,6 +216,19 @@ async def gitgud(ctx, *args):
     """
     if ctx.message.channel.name == "general":
         await zote.say(improve())
+    elif ctx.message.channel.name == "help":
+        if ctx.message.author.id not in config["helptrolls"]:
+            await zote.say("<#{1}> is a place to provide players with actual assistance, <@{0}>".format(ctx.message.author.id, ctx.message.channel.id))
+            config["helptrolls"].add(qoid.Property(tag=ctx.message.author.id, val="1"))
+            config.save()
+        else:
+            await zote.delete_message(ctx.message)
+            pr = config["helptrolls"].find(ctx.message.author.id)
+            pr.set(pr.tag, str(int(pr.val) + 1))
+            config.save()
+            if int(pr.val) >= 5:
+                config["ignored"].add(qoid.Property(ctx.message.author.id))
+                print(ctx.message.author.name + " is ignored for helptrolling")
     else:
         chance = random_builtin.randint(0, 10)
         if chance <= 1 or ctx.message.author.id in config["mods"] or ctx.message.author.id in config["woke"]:
@@ -237,16 +259,30 @@ async def resources(ctx, *args):
 
 
 @zote.command(name="spoilers", pass_context=True, aliases=["nospoilers", "spoiler", "spoileralert"])
-@logger("Spoiler Alert", "spoilers", ["happygrub"])
+@logger("Spoiler Alert", "psa", ["happygrub"])
 async def spoilers(ctx, *args):
     """ A friendly reminder for #general"""
+    try:
+        zote.delete_message(config["init"]["last_psa"])
+    except Exception as e:
+        print("Could not delete last psa")
+    i = config["init"].index("last_psa")
+    config["init"].set(i, qoid.Property("last_psa", ctx.message.id))
     await zote.say(general_psa())
 
 
 @zote.command(name="splrs", pass_context=True, aliases=["psa"])
-@logger("Splr lrt", "spoilers", ["happygrub"])
+@logger("Splr lrt", "psa", ["happygrub"])
 async def splrs(ctx, *args):
     """ A friendly reminder for #general"""
+    try:
+        print(config["init"]["last_psa"])
+        zote.delete_message(zote.get_message(ctx.message.channel, config["init"]["last_psa"]))
+    except Exception as e:
+        print("Could not delete last psa")
+    i = config["init"].index("last_psa")
+    config["init"].set(i, qoid.Property("last_psa", ctx.message.id))
+    config.save()
     await zote.say(splr_lrt())
 
 
@@ -272,7 +308,7 @@ async def wiki(ctx, *args):
 
 
 @zote.command(name="precept", pass_context=True, aliases=["wisdom", "<:zote:371947495330414595>"])
-@logger("Precepts of Zote", "ref", ["zote"])
+@logger("Precepts of Zote", "meme", ["zote"])
 async def precept(ctx, *args):
     """Hear the precepts of Zote!
 
@@ -320,7 +356,7 @@ async def enemy(ctx, *args):
 ##########
 
 
-@zote.command(name="meme", pass_context=True, aliases=["hwhilst", "whilst", "<:hollowomg:337314365323870209>", "<:hollowlenny:337314901670232064>", "<:corny:309365508682285057>", "<:hollowface:324349140920434690>", "<:hollowwow:343784030828888065>", "<:intenseface:331674362509787136>", "<:hollowwoke:344348211433177088>"])
+@zote.command(name="meme", pass_context=True, aliases=["meme_", "whilst_", "hwhilst", "whilst", "<:hollowomg:337314365323870209>", "<:hollowlenny:337314901670232064>", "<:corny:309365508682285057>", "<:hollowface:324349140920434690>", "<:hollowwow:343784030828888065>", "<:intenseface:331674362509787136>", "<:hollowwoke:344348211433177088>"])
 @logger("Meme", "supermeme", ["zote", "corny", "primalaspid", "happygrub"])
 async def meme(ctx, *args):
     await zote.upload(img.r("meme"))
@@ -363,9 +399,15 @@ async def grubhate(ctx, *args):
 
 
 @zote.command(name="lore", pass_context=True, aliases=["wilbopls"])
-@logger("Hollow Knight Lore", "general", ["zote", "heart", "teamcherry"])
+@logger("Hollow Knight Lore", "meme", ["zote", "heart", "teamcherry"])
 async def lore(ctx, *args):
     await zote.upload(img["reaction"]["lore.jpg"])
+
+
+@zote.command(name="obvious", pass_context=True, aliases=["ofc", "obv"])
+@logger("Lord of the Obvious", "supermeme", ["zote"])
+async def obvious(ctx, *args):
+    await zote.upload(img.r("obvious"))
 
 
 @zote.command(name="maggothate", pass_context=True, aliases=["maggoth8", "<:maggot:313428664576376832>"])
@@ -378,6 +420,16 @@ async def maggothate(ctx, *args):
 @logger("Mistake", "meme", ["zote"])
 async def mistake(ctx, *args):
     await zote.upload(img.r("mistake"))
+
+
+@zote.command(name="submit", pass_context=True, aliases=[])
+@logger("Submit Meme", "supermeme", ["zote"])
+async def submit_meme(ctx, *args):
+    if len(ctx.message.attachments) > 0:
+        submit(ctx.message.author.name, ctx.message.author.id, ctx.message.attachments[0]["url"])
+    elif len(args) > 0:
+        for each in args:
+            submit(ctx.message.author.name, ctx.message.author.id, each)
 
 #########
 # MEMES #
@@ -484,7 +536,7 @@ async def gorb(ctx, *args):
 
 
 @zote.command(name="graig", pass_context=True, aliases=["graigpls"])
-@logger("Graig", "ref", ["zote", "heart", "teamcherry"])
+@logger("Graig", "meme", ["zote", "heart", "teamcherry"])
 async def graig(ctx, *args):
     await zote.upload(img["reaction"]["graig.png"])
 
@@ -539,6 +591,11 @@ async def hornetspin(ctx, *args):
 async def hklogic(ctx, *args):
     await zote.upload(img["reaction"]["stabyourselffirst.jpg"])
 
+
+@zote.command(name="loremaster", pass_context=True, aliases=[])
+@logger("Lore Master Never Lies", "meme", ["zote"])
+async def loremaster(ctx, *args):
+    await zote.upload(img["reaction"]["lore master never lies.png"])
 
 @zote.command(name="meirl", pass_context=True, aliases=["me", "me_irl", "dead"])
 @logger("Me_irl", "meme", ["zote"])
@@ -642,7 +699,7 @@ async def steelsoul(ctx, *args):
     await zote.upload(img["reaction"]["defeated.jpg"])
 
 
-@zote.command(name="verupls", pass_context=True, aliases=[])
+@zote.command(name="verupls", pass_context=True, aliases=["boxpls"])
 @logger("Verupls", "general", ["zote"])
 async def verupls(ctx, *args):
     """Defeated

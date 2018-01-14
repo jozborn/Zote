@@ -74,15 +74,23 @@ def add_report(report: str):
 def log(name, ctx):
     try:
         u_name = ctx.message.author.name
+        server = ctx.message.server.name
+        s_id = ctx.message.server.id
         ch_name = ctx.message.channel.name
         time_formatted = datetime.datetime.fromtimestamp(time.time()).strftime('%c')
-        s = "{0}, {1}, #{2}, {3}".format(u_name, name, ch_name, time_formatted)
+        s = "{0}, {1}, {2}({3})-#{4}, {5}".format(u_name, name, server, s_id, ch_name, time_formatted)
         print(s)
         with open('data/log/cmd.zote', 'a') as f:
             f.write(s)
             f.write("\n")
     except UnicodeEncodeError as e:
         print("ERROR CODE 420. Unable to log command due to super dank name.")
+
+
+def submit(name, id, meme):
+    with open('data/memes.zote', 'a') as f:
+        f.write("{0}: {1}: {2}\n".format(name, id, meme))
+    print("Meme submitted by {0}({1}) at {2}".format(name, id, meme))
 
 
 wiki_str = "http://hollowknight.wikia.com/wiki/"
