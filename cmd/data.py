@@ -39,6 +39,9 @@ class ImgFolder(object):
     def __getitem__(self, item):
         return "{0}/{1}".format(self.dir, item)
 
+    def all(self):
+        return self.folder
+
     def r(self):
         selection = random.randint(0, len(self.current) - 1)
         next_img = self.current.pop(selection)
@@ -60,6 +63,11 @@ class ImgDir(object):
 
 
 config = Config()
+
+blacklist = []
+with open("data/blacklist.zote", 'r+') as f:
+    for each in f.readlines():
+        blacklist.append(each.replace("\n", ""))
 
 
 def add_report(report: str):

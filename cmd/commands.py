@@ -176,7 +176,7 @@ async def clear(ctx, *args):
 
 
 @zote.command(name="helpchannel", pass_context=True, hidden=True, aliases=[])
-@logger("Help channel", "modonly", ["happygrub"])
+@logger("Help channel", "modonly", [])
 async def helpchannel(ctx, *args):
     """Clears the help channel"""
     cha = zote.get_channel(config["ch"]["help"])
@@ -416,6 +416,12 @@ async def maggothate(ctx, *args):
     await zote.upload(img.r("maggothate"))
 
 
+@zote.command(name="maggotlove", pass_context=True, aliases=[])
+@logger("Maggot LOVE", "meme", ["maggot", "heart", "zote"])
+async def maggotlove(ctx, *args):
+    await zote.upload(img.r("maggotlove"))
+
+
 @zote.command(name="mistake", pass_context=True, aliases=["gittlelirl", "gittle", "mistae", "mistaek", "mistkae"])
 @logger("Mistake", "meme", ["zote"])
 async def mistake(ctx, *args):
@@ -524,6 +530,12 @@ async def frug(ctx, *args):
 @logger("FlukeMILF", "meme", ["zote"])
 async def flukemilf(ctx, *args):
     await zote.upload(img["reaction"]["flukemilf.gif"])
+
+
+@zote.command(name="godseeker", pass_context=True, aliases=["graigseeker"])
+@logger("godseeker", "meme", ["primalaspid"])
+async def godseeker(ctx, *args):
+    await zote.upload(img["reaction"]["godseeker.jpg"])
 
 
 @zote.command(name="gorb", pass_context=True, aliases=["ascend", "ascendbro", "shinygorb"])
@@ -715,6 +727,28 @@ async def youfool(ctx, *args):
     alt: xero, fool
     """
     await zote.upload(img["reaction"]["you fool.png"])
+
+
+#####################
+# SPOLER MANAGEMENT #
+#####################
+
+
+@zote.event
+async def on_message(message):
+    await zote.process_commands(message)
+    if "zote" in message.content.lower() or "<@297840101944459275>" in message.content.lower():
+        await zote.add_reaction(message, reactions["zote"])
+    if message.channel.id == config["ch"]["general"] or message.channel.id == config["ch"]["bots"]:
+        pass
+        # for s in blacklist:
+        #     if s in message.content.lower():
+        #         print("Deleted spoiler {0} in $general".format(s))
+        #         await zote.delete_message(message)
+        #         await zote.send_message(message.author, splr_lrt() + "\n*(You received this message for saying the spoiler  \"{0}\")*".format(s))
+        #         break
+    elif message.channel.id == config["ch"]["art"]:
+        pass
 
 
 #######
