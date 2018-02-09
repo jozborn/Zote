@@ -29,39 +29,6 @@ class Config(object):
         self.data.save('data', echo=False)
 
 
-class ImgFolder(object):
-
-    def __init__(self, loc: str):
-        self.dir = loc
-        self.folder = [name for name in os.listdir(loc) if os.path.isfile(os.path.join(loc, name))]
-        self.current = list(self.folder)
-
-    def __getitem__(self, item):
-        return "{0}/{1}".format(self.dir, item)
-
-    def all(self):
-        return self.folder
-
-    def r(self):
-        selection = random.randint(0, len(self.current) - 1)
-        next_img = self.current.pop(selection)
-        if len(self.current) == 0:
-            self.current = list(self.folder)
-        return "{0}/{1}".format(self.dir, next_img)
-
-
-class ImgDir(object):
-
-    def __init__(self, frame):
-        self.all = {each: ImgFolder(img_root + each) for each in frame}
-
-    def __getitem__(self, item):
-        return self.all[item]
-
-    def r(self, item):
-        return self.all[item].r()
-
-
 config = Config()
 
 blacklist = []
@@ -97,7 +64,7 @@ def log(name, ctx):
 
 def submit(name, id, meme):
     with open('data/memes.zote', 'a') as f:
-        f.write("{0}: {1}: {2}\n".format(name, id, meme))
+        f.write("{0}\n".format(meme))
     print("Meme submitted by {0}({1}) at {2}".format(name, id, meme))
 
 
