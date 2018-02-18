@@ -1,40 +1,8 @@
 import datetime
-import os
 import random
 import time
-import qoid
 import urllib.request
-
-img_root = "img/"
-dir_logs = "data/log/"
-
-
-class Config(object):
-
-    def __init__(self):
-        self.data = {}
-        with open('data/config.cxr', 'r', encoding='utf-8') as f:
-            self.data = qoid.Bill("Config", [x.strip("\n") for x in f.readlines()])
-
-    def __getitem__(self, item):
-        return self.data[item]
-
-    def __setitem__(self, key, value):
-        self.data[key] = value
-
-    def __str__(self):
-        return str(self.data)
-
-    def save(self):
-        self.data.save('data', echo=False)
-
-
-config = Config()
-
-blacklist = []
-with open("data/blacklist.zote", 'r+') as f:
-    for each in f.readlines():
-        blacklist.append(each.replace("\n", ""))
+from zdn import config
 
 
 def add_report(report: str):

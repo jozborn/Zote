@@ -321,7 +321,7 @@ async def precept(ctx, *args):
         await zote.say("Precept {0}".format(p))
         pr_num = current["precept#"]
         current.set(index=current.index(current.find("precept#")),
-                    this=qoid.Property("precept#", str((int(pr_num) + 1) % 57)))
+                    this=Property("precept#", str((int(pr_num) + 1) % 57)))
         config.save()
 
 
@@ -725,23 +725,27 @@ async def youfool(ctx, *args):
 @zote.event
 async def on_message(message):
     raw = message.content.lower()
+    message.content = raw
     await zote.process_commands(message)
-    if message.channel.id == config["ch"]["meme"]:
-        if "zote" in raw or "<@297840101944459275>" in raw:
-            await zote.add_reaction(message, reactions["zote"])
-        if "dab" in raw:
-            await zote.add_reaction(message, reactions["dableft"])
-            await zote.add_reaction(message, reactions["dabright"])
-        if "whomst" in raw:
-            await zote.add_reaction(message, reactions["hollowface"])
-    if message.channel.id == config["ch"]["general"] or message.channel.id == config["ch"]["bots"]:
+    try:
+        if message.channel.id == config["ch"]["meme"]:
+            if "zote" in raw or "<@297840101944459275>" in raw:
+                await zote.add_reaction(message, reactions["zote"])
+            if "dab" in raw:
+                await zote.add_reaction(message, reactions["dableft"])
+                await zote.add_reaction(message, reactions["dabright"])
+            if "whomst" in raw:
+                await zote.add_reaction(message, reactions["hollowface"])
+        if message.channel.id == config["ch"]["general"] or message.channel.id == config["ch"]["bots"]:
+            pass
+            # for s in blacklist:
+            #     if s in message.content.lower():
+            #         print("Deleted spoiler {0} in $general".format(s))
+            #         await zote.delete_message(message)
+            #         await zote.send_message(message.author, splr_lrt() + "\n*(You received this message for saying the spoiler  \"{0}\")*".format(s))
+            #         break
+    except discord.errors.Forbidden as f:
         pass
-        # for s in blacklist:
-        #     if s in message.content.lower():
-        #         print("Deleted spoiler {0} in $general".format(s))
-        #         await zote.delete_message(message)
-        #         await zote.send_message(message.author, splr_lrt() + "\n*(You received this message for saying the spoiler  \"{0}\")*".format(s))
-        #         break
 
 
 #######

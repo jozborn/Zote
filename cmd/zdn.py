@@ -2,6 +2,26 @@ from qoid import *
 import random
 
 
+dir_logs = "data/log/"
+
+
+class Config(object):
+
+    def __init__(self):
+        self.data = {}
+        with open('data/config.cxr', 'r', encoding='utf-8') as f:
+            self.data = Bill("Config", [x.strip("\n") for x in f.readlines()])
+
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __str__(self):
+        return str(self.data)
+
+    def save(self):
+        self.data.save('data', echo=False)
+
+
 class ImgChannel:
 
     def __init__(self, name: str, links: list, tagged: bool):
@@ -13,7 +33,7 @@ class ImgChannel:
         else:
             for e in links:
                 self.q.add(Property(tag=e))
-        self.current = Qoid(tag=name, val=self.q.val)
+        self.current = Qoid(tag=name, val=list(self.q.val))
 
     def __getitem__(self, item):
         out = self.q[item]
@@ -34,10 +54,13 @@ class ImgChannel:
         return self.q
 
     def r(self):
+        if len(self.current) == 0:
+            self.current = Qoid(tag=self.q.tag, val=list(self.q.val))
+        elif len(self.current) == 1:
+            next_img = self.current.pop(0)
+            return next_img
         selection = random.randint(0, len(self.current) - 1)
         next_img = self.current.pop(selection)
-        if len(self.current) == 0:
-            self.current = Qoid(tag=self.q.tag, val=self.q.val)
         return next_img
 
     def tag(self):
@@ -63,3 +86,11 @@ class ImgServer:
 
     def __len__(self):
         return len(self.channels)
+
+
+config = Config()
+
+blacklist = []
+with open("data/blacklist.zote", 'r+') as f:
+    for each in f.readlines():
+        blacklist.append(each.replace("\n", ""))
