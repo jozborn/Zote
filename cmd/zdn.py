@@ -1,25 +1,18 @@
 from qoid import *
 import random
+import time
 
+print("########################")
+print("    Zote, The Mighty")
+print("by Conrad @the_complexor")
+print("########################\n")
+
+print("Initializing...")
+start = time.time()
 
 dir_logs = "data/log/"
-
-
-class Config(object):
-
-    def __init__(self):
-        self.data = {}
-        with open('data/config.cxr', 'r', encoding='utf-8') as f:
-            self.data = Bill("Config", [x.strip("\n") for x in f.readlines()])
-
-    def __getitem__(self, item):
-        return self.data[item]
-
-    def __str__(self):
-        return str(self.data)
-
-    def save(self):
-        self.data.save('data', echo=False)
+if not os.path.exists(dir_logs):
+    os.mkdir(dir_logs)
 
 
 class ImgChannel:
@@ -29,16 +22,14 @@ class ImgChannel:
         if tagged:
             for e in links:
                 sp = e.split(":", 1)
-                self.q.add(Property(tag=sp[0], val=sp[1].strip()))
+                self.q.append(Property(tag=sp[0], val=sp[1].strip()))
         else:
             for e in links:
-                self.q.add(Property(tag=e))
+                self.q.append(Property(tag=e))
         self.current = Qoid(tag=name, val=list(self.q.val))
 
     def __getitem__(self, item):
         out = self.q[item]
-        if out is PROPERTY_ABSENT:
-            print("Property Absent: {0}".format(item))
         return out
 
     def __len__(self):
@@ -46,9 +37,9 @@ class ImgChannel:
 
     def add(self, item):
         if isinstance(item, Property):
-            self.q.add(item)
+            self.q.append(item)
         elif isinstance(item, str):
-            self.q.add(Property(tag=item, val=None))
+            self.q.append(Property(tag=item, val=None))
 
     def get_qoid(self):
         return self.q
@@ -73,7 +64,7 @@ class ImgServer:
         self.channels = Qoid(tag="img")
 
     def add(self, ch: ImgChannel):
-        self.channels.add(Property(tag=ch.tag(), val=ch))
+        self.channels.append(Property(tag=ch.tag(), val=ch))
 
     def add_to(self, ch: str, to_add):
         if isinstance(to_add, Property):
@@ -88,9 +79,11 @@ class ImgServer:
         return len(self.channels)
 
 
-config = Config()
+config = Index.open("data/config.cxr")
 
-blacklist = []
-with open("data/blacklist.zote", 'r+') as f:
-    for each in f.readlines():
-        blacklist.append(each.replace("\n", ""))
+# blacklist = []
+# with open("data/blacklist.zote", 'r+') as f:
+#     for each in f.readlines():
+#         blacklist.append(each.replace("\n", ""))
+#
+# print(blacklist)

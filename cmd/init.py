@@ -1,13 +1,6 @@
 from data import *
 from discord.ext.commands import Bot
 import discord
-from zdn import *
-
-print("########################")
-print("    Zote, The Mighty")
-print("by Conrad @the_complexor")
-print("########################\n")
-
 
 zote = Bot(command_prefix=config["init"]["pre"])
 zote.remove_command("help")
@@ -31,8 +24,6 @@ for each in config["discord emoji"]:
 
 @zote.event
 async def on_ready():
-    print("Initializing...")
-    start = time.time()
     zote.ZDN = ImgServer()
     for ch in config["img"]:
         with open("img/{0}.cxr".format(ch), "r") as img_file:
@@ -51,6 +42,6 @@ async def on_ready():
 
 def zdn(category: str, image=None):
     if image is None:
-        return zote.ZDN[category].r()
+        return zote.ZDN[category].val.r()
     image = image.replace(" ", "_")
     return zote.ZDN[category][image]

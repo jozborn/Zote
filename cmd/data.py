@@ -1,8 +1,6 @@
 import datetime
-import random
-import time
 import urllib.request
-from zdn import config
+from zdn import *
 
 
 def add_report(report: str):
@@ -20,13 +18,13 @@ def log(name, ctx):
         server = ctx.message.server.name
         s_id = ctx.message.server.id
         ch_name = ctx.message.channel.name
-        time_formatted = datetime.datetime.fromtimestamp(time.time()).strftime('%c')
+        time_formatted = datetime.datetime.fromtimestamp(time.time()).strftime('%x %X')
         s = "{0}, {1}, {2}({3})-#{4}, {5}".format(u_name, name, server, s_id, ch_name, time_formatted)
         print(s)
         with open('data/log/cmd.zote', 'a') as f:
             f.write(s)
             f.write("\n")
-    except UnicodeEncodeError as e:
+    except UnicodeEncodeError:
         print("ERROR CODE 420. Unable to log command due to super dank name.")
 
 
@@ -47,7 +45,6 @@ def wiki_search(query):
         query = query.replace(" ", "+")
         page = urllib.request.urlopen("{0}{1}".format(search, query)).readlines()
         flag = "class=\"result-link\"".encode()
-        links = list([])
         # print(page)
         for line in page:
             if flag in line:
@@ -55,7 +52,7 @@ def wiki_search(query):
                 out = line.split('\"'.encode())
                 return out[1].decode("utf-8")
         return "None found"
-    except Exception as e:
+    except Exception:
         return "None found"
 
 
@@ -87,13 +84,12 @@ def modtext():
     s = "**MOD-ONLY COMMANDS:**\n\n"
     s += "**ignore** [user id]: prevents the user from accessing Zote commands, or takes them off the ignore list.\n\n"
     s += "**ignorelist** shows all users being ignored and their ID.\n\n"
-    s += "**silence** [#tag channel]: prevents Zote from responding to commands in a channel (or take it off that list)\n\n"
+    s += "**silence** [#tag channel]: stops/starts Zote responding to commands in a channel\n\n"
     s += "**clear** [x] or **clear** [@tag user] [x]: deletes X messages from a channel (or a user in that channel)\n\n"
     s += "**clearzotes** [optional amount x]: deletes all _commands and posts from Zote, or the X most recent ones\n\n"
     s += "**helpchannel**: clears all messages in the help channel and reposts the opening help message.\n\n"
     s += "**ban**: reaction image of the False Knight's Banhammer (not an actual ban!)\n\n"
     return s
-    # return s.format(config["init"]["pre"])
 
 
 def helptext():

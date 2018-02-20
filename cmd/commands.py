@@ -310,19 +310,15 @@ async def precept(ctx, *args):
 
      Specify a number from 1 to 57
      for a specific precept,
-     or hear them in order.
+     or hear them in order.`
     """
     try:
-        p = config["precepts"][(int(args[0]) - 1) % 57]
-        await zote.say("Precept {0}".format(p))
+        p = config["precepts"].get(index=(int(args[0]) - 1) % 57)
     except Exception as e:
-        current = config["init"]
-        p = config["precepts"][int(current["precept#"])]
-        await zote.say("Precept {0}".format(p))
-        pr_num = current["precept#"]
-        current.set(index=current.index(current.find("precept#")),
-                    this=Property("precept#", str((int(pr_num) + 1) % 57)))
+        p = config["precepts"].get(index=int(config["init"]["precept#"]))
+        config["init"].set(tag="precept#", val=str((int(config["init"]["precept#"]) + 1) % 57))
         config.save()
+    await zote.say("Precept {0}".format(p))
 
 
 #################
@@ -347,81 +343,41 @@ async def enemy(ctx, *args):
         else:
             await zote.add_reaction(ctx.message, reactions["primalaspid"])
 
-##########
-# MULTIS #
-##########
+##################
+# IMAGE COMMANDS #
+##################
 
 
-@zote.command(name="meme", pass_context=True, aliases=["meme_", "whilst_", "hwhilst", "whilst", "<:hollowomg:337314365323870209>", "<:hollowlenny:337314901670232064>", "<:corny:309365508682285057>", "<:hollowface:324349140920434690>", "<:hollowwow:343784030828888065>", "<:intenseface:331674362509787136>", "<:hollowwoke:344348211433177088>"])
-@logger("Meme", "meme", ["primalaspid"])
-async def meme(ctx, *args):
-    await zote.say(embed=embed(zdn("meme")))
+def get_kind(data):
+
+    if data["kind"] == "multi":
+        async def multi(ctx, *args): await zote.say(embed=embed(zdn(data["loc"])))
+        return multi
+
+    if data["kind"] == "single":
+        async def single(ctx, *args): await zote.say(embed=embed(zdn(data["loc"], data["img"])))
+        return single
 
 
-@zote.command(name="goodmemeplease", pass_context=True, aliases=[])
-@logger("Good memes", "meme", ["dunq"])
-async def goodmemeplease(ctx, *args):
-    await zote.say(embed=embed(zdn("meme")))
+print("Loading commands...")
+COG = Index.open("data/cog.cxr")
 
+for e in COG:
+    # print(e.tag)
+    try:
+        if e.tag:
+            # retrieve parameterized wrapper from logger
+            cmd = logger(e["log"], e["category"], e.all_of("reaction"))
 
-@zote.command(name="fuckmeupfam", pass_context=True, aliases=["gagglemeupgritten"])
-@logger("FMUF", "meme", ["grimm", "primalaspid", "zote"])
-async def fmuf(ctx, *args):
-    await zote.say(embed=embed(zdn("meme")))
+            # retrieve appropriate function from data
+            cmd = cmd(get_kind(e))
 
-
-@zote.command(name="beelove", pass_context=True, aliases=["🐝"])
-@logger("Bee Love", "meme", ["bee", "heart", "zote"])
-async def beelove(ctx, *args):
-    await zote.say(embed=embed(zdn("beelove")))
-
-
-@zote.command(name="comic", pass_context=True, aliases=["psych"])
-@logger("Psych Comic", "meme", ["zote"])
-async def comic(ctx, *args):
-    await zote.say(embed=embed(zdn("psych")))
-
-
-@zote.command(name="grublove", pass_context=True, aliases=["<:happygrub:291831002874249216>"])
-@logger("Grub Love", "meme", ["happygrub", "heart", "zote"])
-async def grublove(ctx, *args):
-    await zote.say(embed=embed(zdn("grublove")))
-
-
-@zote.command(name="grubhate", pass_context=True, aliases=["<:sadgrub:316743976474509314>"])
-@logger("Grub Hate", "meme", ["happygrub", "primalaspid", "zote"])
-async def grubhate(ctx, *args):
-    await zote.say(embed=embed(zdn("grubhate")))
-
-
-@zote.command(name="lore", pass_context=True, aliases=["wilbopls"])
-@logger("Hollow Knight Lore", "meme", ["zote", "heart", "teamcherry"])
-async def lore(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "lore.jpg")))
-
-
-@zote.command(name="obvious", pass_context=True, aliases=["ofc", "obv"])
-@logger("Lord of the Obvious", "meme", ["zote"])
-async def obvious(ctx, *args):
-    await zote.say(embed=embed(zdn("obvious")))
-
-
-@zote.command(name="maggothate", pass_context=True, aliases=["maggoth8", "<:maggot:313428664576376832>"])
-@logger("Maggot Hate", "meme", ["maggot", "primalaspid", "zote"])
-async def maggothate(ctx, *args):
-    await zote.say(embed=embed(zdn("maggothate")))
-
-
-@zote.command(name="maggotlove", pass_context=True, aliases=[])
-@logger("Maggot LOVE", "meme", ["maggot", "heart", "zote"])
-async def maggotlove(ctx, *args):
-    await zote.say(embed=embed(zdn("maggotlove")))
-
-
-@zote.command(name="mistake", pass_context=True, aliases=["gittlelirl", "gittle", "mistae", "mistaek", "mistkae"])
-@logger("Mistake", "meme", ["zote"])
-async def mistake(ctx, *args):
-    await zote.say(embed=embed(zdn("mistake")))
+            # submit command to client
+            zote.command(name=e.tag, pass_context=True, aliases=e.all_of("alias"))(cmd)
+    except QoidError:
+        print("Ignoring read exception in #{0}".format(e.tag))
+    except discord.errors.ClientException as dece:
+        print("Issue adding command {0}, check aliases".format(e.tag), dece)
 
 
 @zote.command(name="submit", pass_context=True, aliases=[])
@@ -434,235 +390,11 @@ async def submit_meme(ctx, *args):
         for each in args:
             submit(ctx.message.author.name, ctx.message.author.id, each)
 
-#########
-# MEMES #
-#########
-
-
-@zote.command(name="absolutelymobadis", pass_context=True, aliases=["mobadis", "bapanada"])
-@logger("Absolutely Mobadis", "meme", ["corny"])
-async def absolutelymobadis(ctx, *args):
-    """Bapanada.
-    Alt: mobadis, bapanada
-    """
-    await zote.say(embed=embed(zdn("reaction", "absolutelymobadis.jpg")))
-
-
-@zote.command(name="aspid", pass_context=True, aliases=["trollaspid", "trolol", "trololol", "<:primalaspid:297708185899499522>"])
-@logger("Troll Aspid", "meme", ["primalaspid"])
-async def aspid(ctx, *args):
-    """Troll aspid
-    alt: trolol, trololol, trolololol, trololololol, trolololololol
-    """
-    await zote.say(embed=embed(zdn("reaction", "trollaspid.png")))
-
-
-@zote.command(name="ban", pass_context=True, aliases=["b4n", "modpoweractivate", "modpowersactivate", "bourgeoisie", "banhammer"])
-@logger("Banhammer", "devplus", ["happygrub", "heart", "primalaspid"])
-async def ban(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "banhammer.png")))
-
-
-@zote.command(name="bapanada420", pass_context=True, aliases=["420"])
-@logger("Bapanada420", "meme", ["corny"])
-async def bapanada420(ctx, *args):
-    """ Mobadis friendly"""
-    await zote.say(embed=embed(zdn("reaction", "420.jpg")))
-
-
-@zote.command(name="celebrate", pass_context=True, aliases=["dance"])
-@logger("Celebrate", "meme", ["zote"])
-async def celebrate(ctx, *args):
-    """Like no one is watching"""
-    await zote.say(embed=embed(zdn("reaction", "dancing.gif")))
-
 
 @zote.command(name="dab", pass_context=True, aliases=["bro", "d4b", "dab_", "<:dabright:320735637386821643>", "<:dableft:369966711648026624>"])
 @logger("Dab", "meme", ["dableft", "zote", "dabright"])
 async def dab(ctx, *args):
     pass
-
-
-@zote.command(name="dashmasterdrake", pass_context=True, aliases=["drake", "dashmaster"])
-@logger("Dashmaster Drake", "meme", ["zote"])
-async def dashmasterdrake(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "dashmaster.jpg")))
-
-
-@zote.command(name="datvoid", pass_context=True, aliases=[])
-@logger("O Shit waddup", "meme", ["zote"])
-async def datvoid(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "datvoid.jpg")))
-
-
-@zote.command(name="disapprove", pass_context=True, aliases=["emilitia"])
-@logger("Disapproving Emilitia", "meme", ["zote"])
-async def disapprove(ctx, *args):
-    """Emilitia"""
-    await zote.say(embed=embed(zdn("reaction", "disapprove.png")))
-
-
-@zote.command(name="draw", pass_context=True, hidden=False)
-@logger("Holiday Entry", "meme", ["teamcherry"])
-async def draw(ctx, *args):
-    await zote.say("Congratulations <@{0}>! You are the winner!".format(ctx.message.author.id))
-
-
-@zote.command(name="elderbug", pass_context=True, aliases=["guessilldie", "<:elderbug:337323354589757451>"])
-@logger("Elderbug", "meme", ["zote"])
-async def elderbug(ctx, *args):
-    """Elderbug guilt trip
-    alt: guessilldie, guilttrip
-    """
-    await zote.say(embed=embed(zdn("reaction", "elderbug die.png")))
-
-
-@zote.command(name="frug", pass_context=True, aliases=[])
-@logger("Frug", "meme", ["happygrub"])
-async def frug(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "frug.jpg")))
-
-
-@zote.command(name="flukemilf", pass_context=True, aliases=["whathaveidone"])
-@logger("FlukeMILF", "meme", ["zote"])
-async def flukemilf(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "flukemilf.gif")))
-
-
-@zote.command(name="godseeker", pass_context=True, aliases=["graigseeker"])
-@logger("godseeker", "meme", ["primalaspid"])
-async def godseeker(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "godseeker.jpg")))
-
-
-@zote.command(name="gorb", pass_context=True, aliases=["ascend", "ascendbro", "shinygorb"])
-@logger("Gorb", "meme", ["zote"])
-async def gorb(ctx, *args):
-    """Gorb 
-    alt: ascend, ascendbro, shinygorb
-    """
-    await zote.say(embed=embed(zdn("reaction", "shinygorb.jpg")))
-
-
-@zote.command(name="graig", pass_context=True, aliases=["graigpls"])
-@logger("Graig", "meme", ["zote", "heart", "teamcherry"])
-async def graig(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "graig.png")))
-
-
-@zote.command(name="grimm", pass_context=True, aliases=["grimmface", "gooftroupe", "grimmadventure"])
-@logger("Grimm Snap", "meme", ["zote", "happygrub", "grimm"])
-async def grimm(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "grimm.gif")))
-
-
-@zote.command(name="grubfather", pass_context=True, aliases=["onthisthedaymydaughteristobemarried", "<:grubfather:341180809228845056>"])
-@logger("Grubfather", "meme", ["happygrub"])
-async def grubfather(ctx, *args):
-    """No respect
-    Alt: onthisthedaymydaughteristobemarried, myeh
-    """
-    await zote.say(embed=embed(zdn("reaction", "grubfather.jpg")))
-
-
-@zote.command(name="hallonite", pass_context=True, aliases=["holo", "holonite", "holonit", "loog"])
-@logger("Is Halo Nit ok", "meme", ["zote"])
-async def hallonite(ctx, *args):
-    """is halo nit logo k
-    alt: holo, holonite, loog
-    """
-    await zote.say(embed=embed(zdn("reaction", "holonit poteiga.png")))
-
-
-@zote.command(name="hollowdoot", pass_context=True, aliases=["doot", "dootdoot"])
-@logger("Hollow Doot", "meme", ["zote"])
-async def hollowdoot(ctx, *args):
-    """Doot
-    Alt: doot, dootdoot
-    """
-    await zote.say(embed=embed(zdn("reaction", "hollowdoot.jpg")))
-
-
-@zote.command(name="hornet", pass_context=True, aliases=["bottleopener", "coldone"])
-@logger("Hornet Bottle Opener", "meme", ["zote"])
-async def hornet(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "hornet bottle opener.jpg")))
-
-
-@zote.command(name="hornetspin", pass_context=True, aliases=["spin", "buhhuhhuh"])
-@logger("Hornet Spin", "meme", ["zote"])
-async def hornetspin(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "Hornetspin.gif")))
-
-
-@zote.command(name="hklogic", pass_context=True, aliases=["<:hollowknice:300572689616076801>"])
-@logger("HK Logic", "meme", ["zote"])
-async def hklogic(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "stabyourselffirst.jpg")))
-
-
-@zote.command(name="loremaster", pass_context=True, aliases=[])
-@logger("Lore Master Never Lies", "meme", ["zote"])
-async def loremaster(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "lore master never lies.jpg")))
-
-
-@zote.command(name="meirl", pass_context=True, aliases=["me", "me_irl", "dead"])
-@logger("Me_irl", "meme", ["zote"])
-async def meirl(ctx, *args):
-    """me_irl
-    alt: me, me_irl, dead
-    """
-    await zote.say(embed=embed(zdn("reaction", "meirl.png")))
-
-
-@zote.command(name="mrmushroom", pass_context=True, aliases=["🍄", "mushroom", "shroom", "mushroomman", "excuseme"])
-@logger("Mr Mushroom", "meme", ["zote"])
-async def mrmushroom(ctx, *args):
-    """Nyush oola mumu?
-    alt: scuse, mushroom, shroom, mushroomman, scuze, mrmush, excuseme
-    """
-    await zote.say(embed=embed(zdn("reaction", "scuse me.png")))
-
-
-@zote.command(name="nootdoot", pass_context=True, aliases=["noot", "dootnoot"])
-@logger("Noot Doot", "meme", ["zote"])
-async def nootdoot(ctx, *args):
-    """I am Noot
-    Alt: noot, dootnoot
-    """
-    await zote.say(embed=embed(zdn("reaction", "nootdoot.png")))
-
-
-@zote.command(name="pervertedlight", pass_context=True, aliases=["<:smugrad:300589495437230080>"])
-@logger("Perverted Light", "meme", ["zote"])
-async def pervertedlight(ctx, *args):
-    """Radiance
-    """
-    await zote.say(embed=embed(zdn("reaction", "perverted light.gif")))
-
-
-@zote.command(name="pickle", pass_context=True, aliases=[])
-@logger("No Pickle Command", "meme", ["pick", "l"])
-async def pickle(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "pickle.JPG")))
-
-
-@zote.command(name="popcorn", pass_context=True)
-@logger("Popcorn", "meme", ["zote"])
-async def popcorn(ctx, *args):
-    """I'm gonna need some popcorn
-    """
-    await zote.say(embed=embed(zdn("reaction", "popcorn.jpg")))
-
-
-@zote.command(name="praise", pass_context=True, aliases=["420praiseit"])
-@logger("Praise", "meme", ["zote"])
-async def praise(ctx, *args):
-    """Moss Prophet
-    alt: praisetillyourehollow, praisetilyourehollow, praisetil, 420praiseit
-    """
-    await zote.say(embed=embed(zdn("reaction", "praise the light.jpg")))
 
 
 @zote.command(name="random", pass_context=True, aliases=["randomizer", "seed"])
@@ -677,45 +409,6 @@ async def randomizerseed(ctx, *args):
         await zote.send_message(ctx.message.author, "Your randomizer seed is {0}. {1}".format(g, randomizer_taunt()))
     else:
         await zote.say("Your randomizer seed is {0}. {1}".format(g, randomizer_taunt()))
-
-
-@zote.command(name="shaw", pass_context=True, aliases=[])
-@logger("Shaw", "meme", ["zote"])
-async def shaw(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "shaw.jpg")))
-
-
-@zote.command(name="squadgoals", pass_context=True, aliases=["squad", "tearsquad"])
-@logger("Squad Goals", "meme", ["zote"])
-async def squadgoals(ctx, *args):
-    """Husk sentry squad
-    alt: squad, tearsquad
-    """
-    await zote.say(embed=embed(zdn("reaction", "squad goals.png")))
-
-
-@zote.command(name="stealyogirl", pass_context=True, aliases=[])
-@logger("Steal Yo Girl", "meme", ["zote"])
-async def stealyogirl(ctx, *args):
-    await zote.say(embed=embed(zdn("reaction", "stealyogirl.jpg")))
-
-
-@zote.command(name="steelsoul", pass_context=True, aliases=["darksouls", "danksouls", "defeated", "trialoffools"])
-@logger("Steel Soul", "meme", ["zote"])
-async def steelsoul(ctx, *args):
-    """Defeated
-    alt: darksouls, danksouls, defeated, trialoffools
-    """
-    await zote.say(embed=embed(zdn("reaction", "defeated.jpg")))
-
-
-@zote.command(name="youfool", pass_context=True, aliases=["xero", "fool"])
-@logger("You Fool", "meme", ["zote"])
-async def youfool(ctx, *args):
-    """Xero
-    alt: xero, fool
-    """
-    await zote.say(embed=embed(zdn("reaction", "you fool.png")))
 
 
 ##########
