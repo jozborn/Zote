@@ -85,5 +85,3 @@ config = Index.open("data/config.cxr")
 # with open("data/blacklist.zote", 'r+') as f:
 #     for each in f.readlines():
 #         blacklist.append(each.replace("\n", ""))
-#
-# print(blacklist)

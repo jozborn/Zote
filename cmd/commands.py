@@ -78,7 +78,7 @@ def embed(url, desc=None):
 
 @zote.command(name="help", pass_context=True, hidden=True)
 async def help(ctx):
-    await zote.say("See the pins in <#{0}> for a list of commands! (contains spoilers)".format(config["ch"]["meme"]))
+    await zote.say(f"See the pins in <#{config['ch']['meme']}> for a list of commands! (contains spoilers)")
 
 ##############
 """MOD-ONLY"""
@@ -99,13 +99,13 @@ async def ignore(ctx, *args):
         elif a not in config["ignored"]:
             config["ignored"].add_new(tag=a, val=None)
             config.save()
-            print("Now ignoring %s" % a)
-            await zote.say("Now ignoring <@%s>" % a)
+            print(f"Now ignoring {a}")
+            await zote.say(f"Now ignoring <@{a}>")
         else:
             config["ignored"].remove(a)
             config.save()
-            print("%s removed from ignore list" % a)
-            await zote.say("Stopped ignoring <@%s>" % a)
+            print(f"{a} removed from ignore list")
+            await zote.say(f"Stopped ignoring <@{a}>")
     except discord.NotFound:
         print("Could not find user")
     except discord.HTTPException:
@@ -119,13 +119,13 @@ async def silence(ctx, *args):
     if a not in config["silenced"]:
         config["silenced"].add_new(tag=a, val=None)
         config.save()
-        print("Silenced #%s" % a)
-        await zote.say("Silenced <#%s>" % a)
+        print(f"Silenced #{a}")
+        await zote.say(f"Silenced <#{a}>")
     else:
         config["silenced"].remove(a)
         config.save()
-        print("Unsilenced %s" % a)
-        await zote.say("Unsilenced <#%s>" % a)
+        print(f"Unsilenced {a}")
+        await zote.say(f"Unsilenced <#{a}>")
 
 
 @zote.command(name="ignorelist", pass_context=True, hidden=True)
@@ -134,7 +134,7 @@ async def ignorelist(ctx, *args):
     if len(config["ignored"]) > 0:
         out = "**Ignored members**\n"
         for u_id in config["ignored"]:
-            out += "<@{0}>: {0}\n".format(u_id)
+            out += f"<@{u_id}>: {u_id}\n"
         await zote.say(out)
     else:
         await zote.say("No ignored members. Good!")
@@ -165,7 +165,7 @@ async def clearzotes(ctx, *args):
                 count += 1
                 if count == num:
                     break
-    print("Cleared {0} Zotes".format(count))
+    print(f"Cleared {count} Zotes")
 
 
 @zote.command(name="clear", pass_context=True, hidden=True)
@@ -176,7 +176,7 @@ async def clear(ctx, *args):
         mgs = []
         async for message in zote.logs_from(zote.get_channel(ctx.message.channel.id), limit=num):
             await zote.delete_message(message)
-        print("Cleared {0} messages from {1}".format(num, ctx.message.channel.name))
+        print(f"Cleared {num} messages from {ctx.message.channel.name}")
     else:
         user = args[0][2:len(args[0]) - 1]
         try:
@@ -195,7 +195,7 @@ async def clear(ctx, *args):
                         break
             if count == prev_count:
                 break
-        print("Cleared {0} messages from {1} in {2}".format(num, user, ctx.message.channel.name))
+        print(f"Cleared {num} messages from {user} in {ctx.message.channel.name}")
 
 
 @zote.command(name="helpchannel", pass_context=True, hidden=True, aliases=[])
@@ -225,7 +225,7 @@ async def helpchannel(ctx, *args):
 @zote.command(name="members", pass_context=True, hidden=True, aliases=["membercount"])
 @logger("Member count", "modonly", ["happygrub"])
 async def member_count(ctx, *args):
-    await zote.say("There are **{0}** members in the Hollow Knight server.".format(ctx.message.server.member_count))
+    await zote.say(f"There are **{ctx.message.server.member_count}** members in the Hollow Knight server.")
 
 ###############################
 """CHANNEL-SPECIFIC COMMANDS"""
@@ -235,8 +235,7 @@ async def member_count(ctx, *args):
 @zote.command(name="gitgud", pass_context=True, aliases=["waifu"])
 @logger("Gitgud", "meme", ["zote"])
 async def gitgud(ctx, *args):
-    """IMPROVE YOURSELF
-    """
+    """IMPROVE YOURSELF"""
     chance = random_builtin.randint(0, 10)
     if chance <= 1\
             or ctx.message.author.id in config["mods"]\
@@ -286,16 +285,16 @@ async def splrs(ctx, *args):
 @logger("HK Wiki search", "ref", ["zote"])
 async def wiki(ctx, *args):
     if len(args) == 0:
-        await zote.say("{0}Zote, The Mighty".format(wiki_str))
+        await zote.say(f"{wiki_str}Zote, The Mighty")
         return -1
     r = args[0]
     for each in args[1:]:
-        r = "{0} {1}".format(r, each.lower())
+        r = f"{r} {each.lower()}"
     query = wiki_search(r)
     if query == "None found":
         await zote.add_reaction(ctx.message, reactions["no"])
         return -1
-    await zote.say("<{0}>".format(query))
+    await zote.say(f"<{query}>")
 
 
 #####################
@@ -318,7 +317,7 @@ async def precept(ctx, *args):
         p = config["precepts"].get(index=int(config["init"]["precept#"]))
         config["init"].set(tag="precept#", val=str((int(config["init"]["precept#"]) + 1) % 57))
         config.save()
-    await zote.say("Precept {0}".format(p))
+    await zote.say(f"Precept {p}")
 
 
 #################
@@ -336,7 +335,7 @@ async def enemy(ctx, *args):
     else:
         r = args[0].capitalize()
         for each in args[1:]:
-            r = "{0}_{1}".format(r, each.capitalize())
+            r = f"{r}_{each.capitalize()}"
         get = zdn("hj", r + ".png")
         if get is not None:
             await zote.say(embed=embed(get, r.replace("_", " ")))
@@ -375,9 +374,9 @@ for e in COG:
             # submit command to client
             zote.command(name=e.tag, pass_context=True, aliases=e.all_of("alias"))(cmd)
     except QoidError:
-        print("Ignoring read exception in #{0}".format(e.tag))
+        print(f"Ignoring read exception in #{e.tag}")
     except discord.errors.ClientException as dece:
-        print("Issue adding command {0}, check aliases".format(e.tag), dece)
+        print(f"Issue adding command {e.tag}, check aliases", dece)
 
 
 @zote.command(name="submit", pass_context=True, aliases=[])
@@ -406,9 +405,9 @@ async def randomizerseed(ctx, *args):
     for each in seed:
         g += str(each)
     if len(args) > 0 and args[0] == "m":
-        await zote.send_message(ctx.message.author, "Your randomizer seed is {0}. {1}".format(g, randomizer_taunt()))
+        await zote.send_message(ctx.message.author, f"Your randomizer seed is {g}. {randomizer_taunt()}")
     else:
-        await zote.say("Your randomizer seed is {0}. {1}".format(g, randomizer_taunt()))
+        await zote.say(f"Your randomizer seed is {g}. {randomizer_taunt()}")
 
 
 ##########
@@ -422,39 +421,24 @@ async def on_message(message):
     await zote.process_commands(message)
     try:
         if message.channel.id == config["ch"]["meme"]:
-            if "zote" in raw or "<@297840101944459275>" in raw:
-                await zote.add_reaction(message, reactions["zote"])
-            if "dab" in raw:
-                await zote.add_reaction(message, reactions["dableft"])
-                await zote.add_reaction(message, reactions["dabright"])
-            if "whomst" in raw:
-                await zote.add_reaction(message, reactions["hollowface"])
+            for word in raw.split(" "):
+                if "zote" in word or "<@297840101944459275>" in word:
+                    await zote.add_reaction(message, reactions["zote"])
+                if "dab" in word:
+                    a = random.randint(0, 1)
+                    await zote.add_reaction(message, reactions["dableft" if a else "dabright"])
+                if "whomst" in word:
+                    await zote.add_reaction(message, reactions["hollowface"])
         if message.channel.id == config["ch"]["general"] or message.channel.id == config["ch"]["bots"]:
             pass
             # for s in blacklist:
             #     if s in message.content.lower():
-            #         print("Deleted spoiler {0} in $general".format(s))
+            #         print(f"Deleted spoiler {s} in $general")
             #         await zote.delete_message(message)
-            #         await zote.send_message(message.author, splr_lrt() + "\n*(You received this message for saying the spoiler  \"{0}\")*".format(s))
+            #         await zote.send_message(message.author, splr_lrt() + f"\n*(You received this message for saying the spoiler  \"{s}\")*")
             #         break
     except discord.errors.Forbidden as f:
         pass
-
-
-#######
-# 420 #
-#######
-
-
-@zote.command(name="conradfixyourbot", pass_context=True, aliases=["suggest", "report", "ihate", "pleaseban"])
-@logger("CFYB", "general", ["happygrub"])
-async def report(ctx, *args):
-    if len(args) > 0:
-        s = args[0]
-        for e in args[1:]:
-            s += " " + e
-        add_report(s + " < {0} < {1} < {2} < {3}".format(ctx.message.author.name, ctx.message.author.id, ctx.message.channel, ctx.message.timestamp))
-        config.save()
 
 ####################
 # GLAD THAT'S OVER #

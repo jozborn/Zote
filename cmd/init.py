@@ -26,18 +26,18 @@ for each in config["discord emoji"]:
 async def on_ready():
     zote.ZDN = ImgServer()
     for ch in config["img"]:
-        with open("img/{0}.cxr".format(ch), "r") as img_file:
+        with open(f"img/{ch}.cxr", "r") as img_file:
             o = []
             for e in img_file.readlines():
                 o.append(e.replace("\n", ""))
             zote.ZDN.add(ImgChannel(name=ch, links=o, tagged=False))
     for ch in config["tagged img"]:
-        with open("img/{0}.cxr".format(ch), "r") as img_file:
+        with open(f"img/{ch}.cxr", "r") as img_file:
             o = []
             for e in img_file.readlines():
                 o.append(e.replace("\n", ""))
             zote.ZDN.add(ImgChannel(name=ch, links=o, tagged=True))
-    print("ZDN initialized in {0}s.".format(format(time.time() - start, '.4f')))
+    print(f"ZDN initialized in {format(time.time() - start, '.4f')}s.")
 
 
 def zdn(category: str, image=None):
