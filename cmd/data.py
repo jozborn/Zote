@@ -1,16 +1,25 @@
 import datetime
 import urllib.request
-from zdn import *
+from zdn import config
+import time
+import random
 
 
 def log(name, ctx):
     try:
         u_name = ctx.message.author.name
-        server = ctx.message.server.name
-        s_id = ctx.message.server.id
-        ch_name = ctx.message.channel.name
-        time_formatted = datetime.datetime.fromtimestamp(time.time()).strftime('%x %X')
-        s = f"{u_name}, {name}, {server}({s_id})-#{ch_name}, {time_formatted}"
+        if ctx.message.server:
+            server = ctx.message.server.name
+            s_id = ctx.message.server.id
+        else:
+            server = "DM"
+            s_id = ctx.message.author.id
+        if ctx.message.channel:
+            ch_name = ctx.message.channel.name
+        else:
+            ch_name = f"{ctx.message.author.name}"
+        time_formatted = datetime.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
+        s = f"{time_formatted} {u_name}, {name}, {server}({s_id})-#{ch_name}"
         print(s)
         with open('data/log/cmd.zote', 'a') as f:
             f.write(s)

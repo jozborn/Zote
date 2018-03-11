@@ -1,6 +1,8 @@
 from data import *
 from discord.ext.commands import Bot
 import discord
+from zdn import ImgServer, ImgChannel, start
+import life_ender
 
 zote = Bot(command_prefix=config["init"]["pre"])
 zote.remove_command("help")
@@ -23,7 +25,14 @@ for each in config["discord emoji"]:
 
 
 @zote.event
+async def on_command_error(exception, context):
+    print(f"{exception}")
+
+@zote.event
 async def on_ready():
+    print("Gathering command images...")
+    zote.submissions = zote.get_channel(config["init"]["zdn_submit"])
+    zote.log = zote.get_channel(config["init"]["zdn_log"])
     zote.ZDN = ImgServer()
     for ch in config["img"]:
         with open(f"img/{ch}.cxr", "r") as img_file:
@@ -42,6 +51,6 @@ async def on_ready():
 
 def zdn(category: str, image=None):
     if image is None:
-        return zote.ZDN[category].val.r()
+        return zote.ZDN[category].r()
     image = image.replace(" ", "_")
     return zote.ZDN[category][image]

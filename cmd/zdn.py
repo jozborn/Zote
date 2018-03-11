@@ -18,6 +18,8 @@ if not os.path.exists(dir_logs):
 class ImgChannel:
 
     def __init__(self, name: str, links: list, tagged: bool):
+        self.name = name
+        self.tagged = tagged
         self.q = Qoid(tag=name)
         if tagged:
             for e in links:
@@ -29,17 +31,26 @@ class ImgChannel:
         self.current = Qoid(tag=name, val=list(self.q.val))
 
     def __getitem__(self, item):
-        out = self.q[item]
-        return out
+        return self.q[item]
 
     def __len__(self):
         return len(self.q)
 
     def add(self, item):
-        if isinstance(item, Property):
-            self.q.append(item)
-        elif isinstance(item, str):
-            self.q.append(Property(tag=item, val=None))
+        if isinstance(item, (Property, str)):
+            to_add = item if isinstance(item, Property) else Property(tag=item, val=None)
+            self.q.append(to_add)
+            self.current.append(to_add)
+            with open(f"img/{self.name}.cxr", "a") as f:
+                f.write(str(to_add))
+                f.write("\n")
+
+    def remove(self, item):
+        out = self.q.remove(item)
+        with open(f"img/{self.name}.cxr", "w") as f:
+            for e in self.q:
+                f.write(f"{e}\n")
+        return out
 
     def get_qoid(self):
         return self.q
@@ -73,7 +84,7 @@ class ImgServer:
             self[ch].add(Property(tag=to_add, val=None))
 
     def __getitem__(self, tag: str):
-        return self.channels.get(tag=tag)
+        return self.channels.get(tag=tag).val
 
     def __len__(self):
         return len(self.channels)
