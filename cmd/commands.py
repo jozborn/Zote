@@ -12,7 +12,7 @@ from cfg import text, reactions
 from log import wiki_str, wiki_search, log_command_usage, log_error_message
 from qoid import Property, Index, QoidError
 from zdn import ImgServer, embedify
-from zote import sanitize_arguments
+from events import sanitize_arguments
 
 
 cooldown = 0
@@ -343,7 +343,7 @@ def initialize_commands(zote: Bot, cfg: Index, img: ImgServer):
     def get_kind(data):
 
         if data["kind"] == "multi":
-            async def multi(ctx, *args): await zote.say(embed=img[data["loc"]])
+            async def multi(ctx, *args): await zote.say(embed=img[data["loc"]].r())
             return multi
 
         if data["kind"] == "single":

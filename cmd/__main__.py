@@ -1,5 +1,5 @@
 from cfg import _zdn, cfg, inst, start
-from zote import initialize_events
+from events import initialize_events
 from commands import initialize_commands
 from log import log_error_message
 from inf import token

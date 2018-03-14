@@ -33,7 +33,7 @@ def log_command_usage(name, ctx):
 
 def log_error_message(f_name, exc):
     with open(_dir_logs + "error.zote", "a") as file:
-        file.write(f"{f_name}: {str(type(exc))} + : + {str(exc)} + \n")
+        file.write(f"{f_name}: {str(type(exc))} : {str(exc)}\n")
     print(">>>>>", type(exc), str(exc))
 
 

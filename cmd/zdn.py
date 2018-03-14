@@ -73,7 +73,7 @@ class ImgServer:
 
     def __getitem__(self, q):
         if isinstance(q, str):
-            return self.channels.get(q).val.r()
+            return self.channels.get(q).val
         elif isinstance(q, tuple):
             image = q[1].replace(" ", "_")
             return self.channels.get(q[0])[image]
