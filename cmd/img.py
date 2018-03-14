@@ -1,6 +1,6 @@
-from discord import Embed
+from disco import embedify
 from qoid import Property, Qoid
-import random
+from random import randint
 
 
 class ImgChannel:
@@ -57,7 +57,7 @@ class ImgChannel:
         elif len(self.current) == 1:
             next_img = self.current.pop(0)
             return next_img
-        selection = random.randint(0, len(self.current) - 1)
+        selection = randint(0, len(self.current) - 1)
         next_img = self.current.pop(selection)
         return next_img.val
 
@@ -81,19 +81,11 @@ class ImgServer:
     def __len__(self):
         return len(self.channels)
 
-    def add(self, ch: ImgChannel):
-        self.channels.append(Property(tag=ch.tag(), val=ch))
+    def add(self, ch: str, tagged: bool):
+        self.channels.append(Property(tag=ch, val=ImgChannel.open(ch, tagged=tagged)))
 
     def add_to(self, ch: str, to_add):
         if isinstance(to_add, Property):
             self[ch].add(to_add)
         elif isinstance(to_add, str):
             self[ch].add(Property(tag=to_add, val=None))
-
-
-def embedify(url, desc=None):
-    out = Embed()
-    out.set_image(url=url)
-    if desc is not None:
-        out.description = desc
-    return out

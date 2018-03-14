@@ -2,30 +2,108 @@ import requests
 import os
 
 from random import randint
-from discord import Channel, User, NotFound, HTTPException, DiscordException, PrivateChannel, Forbidden
+from discord import Channel, User, NotFound, HTTPException, DiscordException, PrivateChannel, Forbidden, Emoji
 from discord.errors import ClientException
 from discord.ext.commands import Bot, check
-
-# These should all be passed in to initialize_commands
-from cfg import text, reactions
-
-from log import wiki_str, wiki_search, log_command_usage, log_error_message
+from data import wiki_str, wiki_search, log_error_message, log_command_usage
 from qoid import Property, Index, QoidError
-from zdn import ImgServer, embedify
-from events import sanitize_arguments
+from disco import embedify, sanitize
+from time import time
+
+
+def create_bot_instance(cfg: Index, dat: dict):
+    inst = Bot(command_prefix=cfg["init"]["pre"], pm_help=True)
+    reactions = {}
+    for each in cfg["hk emoji"]:
+        d = Emoji(
+            require_colons=True, managed=False,
+            name=each.tag, id=each.val,
+            server=cfg["init"]["server"])
+        reactions.update({each.tag: d})
+    for each in cfg["discord emoji"]:
+        reactions.update({each.tag: chr(int(each.val))})
+    dat.update({"reactions": reactions})
+    initialize_events(inst, cfg, dat)
+    initialize_commands(inst, cfg, dat)
+    return inst
+
+
+def initialize_events(zote: Bot, cfg: Index, dat: dict):
+
+    reactions = dat["reactions"]
+    blacklist = dat["blacklist"]
+    text = dat["text"]
+    start = dat["start"]
+    img = dat["img"]
+
+    @zote.event
+    async def on_command_error(exception, context): log_error_message(context.command.name, exception)
+
+    @zote.event
+    async def on_member_join(member):
+        if member.server.id == cfg["init"]["server"]:
+            num = member.server.member_count
+            await zote.send_message(destination=zote.get_channel(cfg['ch']['joins-and-leaves']),
+                                    content=f"`{num}` members - `{str(member)} ({member.id})` joined.")
+
+    @zote.event
+    async def on_member_remove(member):
+        if member.server.id == cfg["init"]["server"]:
+            num = member.server.member_count
+            await zote.send_message(destination=zote.get_channel(cfg['ch']['joins-and-leaves']),
+                                    content=f"`{num}` members - `{str(member)} ({member.id})` left.")
+
+    @zote.event
+    async def on_message(message):
+        raw = message.content.lower()
+        message.content = raw
+        try:
+            await zote.process_commands(message)
+            if message.channel.id == cfg["ch"]["meme"]:
+                if message.author.id == "312125463952883712":
+                    await zote.add_reaction(message, reactions["hollowwow"])
+                for word in raw.split(" "):
+                    if "zote" in word or "<@297840101944459275>" in word:
+                        await zote.add_reaction(message, reactions["zote"])
+                    if "dab" in word:
+                        await zote.add_reaction(message, reactions["hollowdab"])
+                    if "whomst" in word:
+                        await zote.add_reaction(message, reactions["hollowface"])
+            if message.channel.id == cfg["ch"]["general"] or message.channel.id == cfg["ch"]["bots"]:
+                bad_word = blacklist(message.content.lower())
+                if bad_word:
+                    print(f"Deleted spoiler {s} in $general")
+                    await zote.delete_message(message)
+                    await zote.send_message(
+                        message.author,
+                        f"{text['short_psa']}\n*(You received this message for saying the spoiler  \"{bad_word}\")*")
+        except Forbidden as f:
+            pass
+
+    @zote.event
+    async def on_ready():
+        zote.submissions = zote.get_channel(cfg["zdn"]["submissions"])
+        zote.log = zote.get_channel(cfg["zdn"]["log"])
+        if not img.ready:
+            print("Gathering command images...")
+            for ch in cfg["img"]:
+                img.add(ch, tagged=False)
+            for ch in cfg["tagged img"]:
+                img.add(ch, tagged=True)
+            img.ready = True
+        print(f"ZDN initialized in {format(time() - start, '.4f')}s.")
 
 
 cooldown = 0
-_lim = 3
+lim = 3
 
 
-def initialize_commands(zote: Bot, cfg: Index, img: ImgServer):
+def initialize_commands(zote: Bot, cfg: Index, dat: dict):
 
     def _validator(category):
-
         def predicate(ctx):
             global cooldown
-            global _lim
+            global lim
             ch_name = ctx.message.channel.name
             ch_id = ctx.message.channel.id
             u_id = ctx.message.author.id
@@ -35,18 +113,17 @@ def initialize_commands(zote: Bot, cfg: Index, img: ImgServer):
             elif category == "devplus":
                 return u_id in cfg["devs"]
             elif isinstance(ctx.message.channel, PrivateChannel) or ctx.message.server.id != cfg["init"]["server"]:
-                return category != "modonly" and cooldown < _lim
+                return category != "modonly" and cooldown < lim
             elif u_id in cfg["ignored"] or ch_id in cfg["silenced"]:
                 return False
             elif category != "modonly":
-                return ch_name in cfg[category] and cooldown < _lim
+                return ch_name in cfg[category] and cooldown < lim
             else:
                 return False
 
         return check(predicate)
 
     def logger(category, reaction):
-
         def wrap(f):
 
             @_validator(category)
@@ -75,7 +152,7 @@ def initialize_commands(zote: Bot, cfg: Index, img: ImgServer):
                             await zote.add_reaction(ctx.message, reactions["no"])
                         except Forbidden:
                             pass
-                    args = await sanitize_arguments(zote, ctx.message.channel, *args)
+                    args = await sanitize(zote, ctx.message.channel, *args)
                     await f(ctx, *args)
                     if f.__name__ in cfg["flaggers"]:
                         cfg.save(echo=False)
@@ -91,6 +168,10 @@ def initialize_commands(zote: Bot, cfg: Index, img: ImgServer):
             return wrapped
 
         return wrap
+
+    reactions = dat["reactions"]
+    text = dat["text"]
+    img = dat["img"]
 
     @zote.command(name="ignore", pass_context=True, hidden=True)
     @logger("modonly", ["happygrub"])

@@ -1,20 +1,34 @@
-from cfg import _zdn, cfg, inst, start
-from events import initialize_events
-from commands import initialize_commands
-from log import log_error_message
+from qoid import Index
+from bot import create_bot_instance
+from data import log_error_message, blacklist, text
 from inf import token
-
+from img import ImgServer
 from time import time, sleep
 from asyncio import get_event_loop, Task, gather
 
-initialize_events(inst, cfg, _zdn)
-initialize_commands(inst, cfg, _zdn)
+print("""
+ ##########################
+ #                        #
+ # Zote.discord by Conrad #
+ #                        #
+ # patreon.com/complexor  #
+ #                        #
+ ##########################
+""")
+
+cfg = Index.open("data/config.cxr")
+zdn = ImgServer()
+
+start = time()
+_dat = {"img": zdn, "blacklist": blacklist, "text": text, "start": start}
+
+inst = create_bot_instance(cfg, _dat)
 
 fail_delay = 25
 loop = get_event_loop()
 while True:
     try:
-        start(time())
+        start = time()
         print("Initializing...")
         loop.run_until_complete(inst.start(token()))
     except Exception as exc:
