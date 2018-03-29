@@ -461,9 +461,9 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
         u = e["url"]
         u_ext = u.rsplit('.', 1)[-1]
         img_data = requests.get(u).content
-        with open(f"img/t-{msg_from.id}.{u_ext}", 'wb+') as img_file:
+        with open(f"data/t-{msg_from.id}.{u_ext}", 'wb+') as img_file:
             img_file.write(img_data)
-        ref = await zote.send_file(destination=ch_to, fp=f"img/t-{msg_from.id}.{u_ext}",
+        ref = await zote.send_file(destination=ch_to, fp=f"data/t-{msg_from.id}.{u_ext}",
                                    filename=f"{msg_from.id}.{u_ext}")
         img.add_image(ch_to.name, ref.attachments[0]["url"])
         await zote.delete_message(ctx_message)
@@ -471,7 +471,7 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
             ch_from = ctx_message.channel.name
             img.remove(ch_from, u.rsplit("/", 1)[0] if eval(img[ch_from]["tagged"]) else u)
             await zote.delete_message(msg_from)
-        os.remove(f"img/t-{msg_from.id}.{u_ext}")
+        os.remove(f"data/t-{msg_from.id}.{u_ext}")
 
     @zote.command(name="accept", hidden=True, pass_context=True, aliases=["a"])
     @logger("modonly", ["zote"])
@@ -489,13 +489,13 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
                 u += "-size_restricted.gif"
             u_ext = u.rsplit('.', 1)[-1]
             img_data = requests.get(u).content
-            with open(f"img/t-{msg.id}.{u_ext}", 'wb+') as img_file:
+            with open(f"data/t-{msg.id}.{u_ext}", 'wb+') as img_file:
                 img_file.write(img_data)
-            ref = await zote.send_file(destination=repo, fp=f"img/t-{msg.id}.{u_ext}", filename=f"{msg.id}.{u_ext}")
+            ref = await zote.send_file(destination=repo, fp=f"data/t-{msg.id}.{u_ext}", filename=f"{msg.id}.{u_ext}")
             await zote.send_message(destination=zote.log, embed=embedify(e['image']['url'], f"Accepted to #{repo.name}"))
             img.add_image(repo.name, ref.attachments[0]["url"])
             await zote.delete_messages([msg, ctx.message])
-            os.remove(f"img/t-{msg.id}.{u_ext}")
+            os.remove(f"data/t-{msg.id}.{u_ext}")
         else:
             await zote.add_reaction(ctx.message, reactions["no"])
 
