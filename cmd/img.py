@@ -1,5 +1,5 @@
 from disco import embedify
-from qoid import Property, Index
+from qoid import Property, Qoid, Index
 from random import randint
 import copy
 
@@ -17,7 +17,13 @@ class EmbedIndex(Index):
                     p.set(val=embedify(url="https://" + p.val))
                 else:
                     p.set(val=embedify(url="https://" + p.tag))
-        self.current = Index(tag="Current Images", val=list(self.val))
+        self.current = self.refresh()
+
+    def refresh(self):
+        out = Index(tag="Current Images", val=copy.deepcopy(self.val))
+        for e in out:
+            e.remove("tagged")
+        return out
 
     def add_image(self, tag, this):
         to_add = Property(tag=this.replace("https://", ""), val=embedify(url=this))
@@ -31,12 +37,16 @@ class EmbedIndex(Index):
 
     def r(self, tag):
         if len(self.current[tag]) == 0:
-            self.current = Index(tag="Current Images", val=list(self.val))
+            self.current[tag] = Qoid(tag, copy.deepcopy(self[tag].val))
+            print(str(self.current[tag]))
+            self.current[tag].remove("tagged")
         elif len(self.current[tag]) == 1:
             next_img = self.current[tag].pop(0).val
+            print(next_img)
             return next_img
         selection = randint(0, len(self.current[tag]) - 1)
         next_img = self.current[tag].pop(selection)
+        print(next_img)
         return next_img.val
 
     def remove_image(self, tag, this):
