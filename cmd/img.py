@@ -1,91 +1,47 @@
 from disco import embedify
-from qoid import Property, Qoid
+from qoid import Property, Index
 from random import randint
+import copy
 
 
-class ImgChannel:
+class EmbedIndex(Index):
 
-    @staticmethod
-    def open(ch: str, tagged=False):
-        with open(f"img/{ch}.cxr", "r") as img_file:
-            o = []
-            for e in img_file.readlines():
-                o.append(e.replace("\n", ""))
-        return ImgChannel(name=ch, links=o, tagged=tagged)
+    def __init__(self, source: str, path=None, mode=None):
+        self.source = Index.open(source)
+        super().__init__(tag="Images", val=copy.deepcopy(self.source.val), path=path, mode=mode)
+        for ch in self:
+            self.tagged = eval(ch[0])
+            for k in range(1, len(ch)):
+                p = ch.get(index=k)
+                if self.tagged:
+                    p.set(val=embedify(url="https://" + p.val))
+                else:
+                    p.set(val=embedify(url="https://" + p.tag))
+        self.current = Index(tag="Current Images", val=list(self.val))
 
-    def __init__(self, name: str, links: list, tagged: bool):
-        self.name = name
-        self.tagged = tagged
-        self.q = Qoid(tag=name)
-        if tagged:
-            for e in links:
-                sp = e.split(":", 1)
-                self.q.append(Property(tag=sp[0], val=embedify(url=sp[1].strip(), desc=None)))
-        else:
-            for e in links:
-                self.q.append(Property(tag=e, val=embedify(url=e, desc=None)))
-        self.current = Qoid(tag=name, val=list(self.q.val))
+    def add_image(self, tag, this):
+        to_add = Property(tag=this.replace("https://", ""), val=embedify(url=this))
+        self[tag].append(to_add)
+        self.current[tag].append(to_add)
+        self.source[tag].append(Property(tag=to_add.tag))
+        self.source.save(echo=False)
 
-    def __getitem__(self, item):
-        return self.q[item]
+    def save_source(self, echo=False):
+        self.source.save(echo)
 
-    def __len__(self):
-        return len(self.q)
-
-    def add(self, item):
-        if isinstance(item, (Property, str)):
-            to_add = item if isinstance(item, Property) else Property(tag=item, val=embedify(url=item, desc=None))
-            self.q.append(to_add)
-            self.current.append(to_add)
-            with open(f"img/{self.name}.cxr", "a") as f:
-                f.write(str(to_add))
-                f.write("\n")
-
-    def remove(self, item):
-        out = self.q.remove(item)
-        with open(f"img/{self.name}.cxr", "w") as f:
-            for e in self.q:
-                f.write(f"{e}\n")
-        return out
-
-    def get_qoid(self):
-        return self.q
-
-    def r(self):
-        if len(self.current) == 0:
-            self.current = Qoid(tag=self.q.tag, val=list(self.q.val))
-        elif len(self.current) == 1:
-            next_img = self.current.pop(0)
+    def r(self, tag):
+        if len(self.current[tag]) == 0:
+            self.current = Index(tag="Current Images", val=list(self.val))
+        elif len(self.current[tag]) == 1:
+            next_img = self.current[tag].pop(0).val
             return next_img
-        selection = randint(0, len(self.current) - 1)
-        next_img = self.current.pop(selection)
+        selection = randint(0, len(self.current[tag]) - 1)
+        next_img = self.current[tag].pop(selection)
         return next_img.val
 
-    def tag(self):
-        return self.q.tag
-
-
-class ImgServer:
-
-    def __init__(self):
-        self.ready = False
-        self.channels = Qoid(tag="img")
-
-    def __getitem__(self, q):
-        if isinstance(q, str):
-            return self.channels.get(q).val
-        elif isinstance(q, tuple):
-            image = q[1].replace(" ", "_")
-            return self.channels.get(q[0])[image]
-
-    def __len__(self):
-        return len(self.channels)
-
-    def add(self, ch: str, tagged: bool):
-        self.channels.append(Property(tag=ch, val=ImgChannel.open(ch, tagged=tagged)))
-
-    def add_to(self, ch: str, to_add):
-        if isinstance(to_add, Property):
-            self[ch].add(to_add)
-        elif isinstance(to_add, str):
-            self[ch].add(Property(tag=to_add, val=None))
+    def remove_image(self, tag, this):
+        this = this.replace("https://", "")
+        self[tag].remove(this)
+        self.current[tag].remove(this)
+        self.source[tag].remove(this)
+        self.source.save(echo=False)
