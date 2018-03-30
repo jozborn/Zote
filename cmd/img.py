@@ -46,7 +46,6 @@ class EmbedIndex(Index):
             return next_img
         selection = randint(0, len(self.current[tag]) - 1)
         next_img = self.current[tag].pop(selection)
-        print(next_img)
         return next_img.val
 
     def remove_image(self, tag, this):
