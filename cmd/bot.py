@@ -494,7 +494,8 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
             ref = await zote.send_file(destination=repo, fp=f"data/t-{msg.id}.{u_ext}", filename=f"{msg.id}.{u_ext}")
             await zote.send_message(destination=zote.log, embed=embedify(e['image']['url'], f"Accepted to #{repo.name}"))
             img.add_image(repo.name, ref.attachments[0]["url"])
-            await zote.delete_messages([msg, ctx.message])
+            await zote.delete_message(msg)
+            await zote.delete_message(ctx.message)
             os.remove(f"data/t-{msg.id}.{u_ext}")
         else:
             await zote.add_reaction(ctx.message, reactions["no"])
@@ -513,7 +514,8 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
         n = ctx.message.channel.name
         a = args[0].attachments[0]["url"]
         img.remove_image(n, a.rsplit("/", 1)[0] if eval(img[n]["tagged"]) else a)
-        await zote.delete_messages([ctx.message, args[0]])
+        await zote.delete_message(ctx.message)
+        await zote.delete_message(args[0])
 
     @zote.command(name="move", hidden=True, pass_context=True, aliases=["m"])
     @logger("modonly", ["zote"])
@@ -532,7 +534,8 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
             e = msg.embeds[0]
             u = e["image"]["url"]
             await zote.send_message(destination=zote.log, embed=embedify(e['image']['url'], f"Rejected: {reason}"))
-            await zote.delete_messages([msg, ctx.message])
+            await zote.delete_message(msg)
+            await zote.delete_message(ctx.message)
         else:
             await zote.add_reaction(ctx.message, reactions["no"])
 
