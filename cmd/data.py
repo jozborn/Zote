@@ -32,6 +32,10 @@ def log_command_usage(name, ctx):
             f.write(s)
             f.write("\n")
     except UnicodeEncodeError:
+        s = f"{time_formatted} DANKNAME420, {name}, {server}({s_id})-#{ch_name}"
+        with open('data/log/cmd.zote', 'a') as f:
+            f.write(s)
+            f.write("\n")
         print("ERROR CODE 420. Unable to log command due to super dank name.")
 
 

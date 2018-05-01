@@ -2,8 +2,8 @@
 Some happy little helper methods for discord.py
 """
 
-from discord import Embed, HTTPException
-from qoid import Qoid, Property
+from discord import Embed, HTTPException, Message
+from qoid import Index, Qoid, Property
 
 
 def embedify(url, desc=None):
@@ -14,7 +14,7 @@ def embedify(url, desc=None):
     return out
 
 
-async def qoidify_server_channels(client, s_id: str, tag=None):
+def qoidify_server_channels(client, s_id: str, tag=None):
     server = client.get_server(s_id)
     out = Qoid(tag=tag if tag else server.name)
     for ch in server.channels:
