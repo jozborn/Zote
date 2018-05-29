@@ -28,14 +28,14 @@ def log_command_usage(name, ctx):
         time_formatted = datetime.datetime.fromtimestamp(time()).strftime('%H:%M:%S')
         s = f"{time_formatted} {u_name}, {name}, {server}({s_id})-#{ch_name}"
         print(s)
-        with open('data/log/cmd.zote', 'a') as f:
-            f.write(s)
-            f.write("\n")
+        with open('data/log/cmd.zote', 'a') as cmd_log:
+            cmd_log.write(s)
+            cmd_log.write("\n")
     except UnicodeEncodeError:
         s = f"{time_formatted} DANKNAME420, {name}, {server}({s_id})-#{ch_name}"
-        with open('data/log/cmd.zote', 'a') as f:
-            f.write(s)
-            f.write("\n")
+        with open('data/log/cmd.zote', 'a') as cmd_log:
+            cmd_log.write(s)
+            cmd_log.write("\n")
         print("ERROR CODE 420. Unable to log command due to super dank name.")
 
 
@@ -56,10 +56,8 @@ def wiki_search(query):
         query = query.replace(" ", "+")
         page = request.urlopen(f"{search}{query}").readlines()
         flag = "class=\"result-link\"".encode()
-        # print(page)
         for line in page:
             if flag in line:
-                # print(line)
                 out = line.split('\"'.encode())
                 return out[1].decode("utf-8")
         return "None found"
@@ -113,6 +111,11 @@ _splr_lrt = """**Reminder**: Please avoid any discussion of content past the For
 in <#349116318865424384> or <#283680756159741953>"""
 _sr_guides = "https://www.speedrun.com/hollowknight/guides"
 _sr_resources = "https://www.speedrun.com/hollowknight/resources"
+
+_where_memes = "https://discord.gg/kqdCYZE"
+
+_gng_not_announced = "Gods and Glory has not yet been announced."
+
 text = {
     "sr_guides": _sr_guides,
     "sr_resources": _sr_resources,
@@ -120,5 +123,7 @@ text = {
     "100": _hundred_guide,
     "mod_help": _modtext,
     "randomizer": _randomizer_taunt,
-    "short_psa": _splr_lrt
+    "short_psa": _splr_lrt,
+    "where_memes": _where_memes,
+    "gng_not_announced": _gng_not_announced
 }
