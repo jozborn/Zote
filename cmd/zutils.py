@@ -10,7 +10,7 @@ import os
 import requests
 from disco import embedify
 from discord.ext.commands import Bot
-from discord import Forbidden
+from discord import Forbidden, NotFound
 
 
 async def accept_and_log_meme(zote: Bot, img, msg, repo):
@@ -59,10 +59,12 @@ async def check_message(zote: Bot, message, cfg, reactions, blacklist):
     raw = message.content.lower().replace("_", ";")
     message.content = raw
     await zote.process_commands(message)
-    if message.channel.id == cfg["ch"]["message-changelog"]:
-        if message.author.name == "Dyno":
-            if message.embeds[0]["author"]["name"] == "Hollow Knight":
+    if message.channel.id == cfg["ch"]["message-changelog"] and message.author.name == "Dyno":
+        if message.embeds[0]["author"]["name"] == "Hollow Knight":
+            try:
                 await zote.delete_message(message)
+            except NotFound:
+                pass
     if message.channel.id == cfg["ch"]["meme"]:
         try:
             for word in raw.split(" "):
