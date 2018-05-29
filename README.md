@@ -10,7 +10,7 @@ Zote, The Mighty, a Hollow Knight themed meme bot made in discord.py
 * [chardet](https://github.com/chardet/chardet/releases/latest)
 * [discord.py](https://github.com/Rapptz/discord.py/releases/tag/v0.16.12)
 * [multidict](https://github.com/aio-libs/multidict/releases/latest)
-* [qoid.py]() (link dead)
+* [qoid.py](https://github.com/jozborn/Qoid.py/releases/tag/1.0.0a)
 * [websockets](https://github.com/Lawouach/WebSocket-for-Python/releases/tag/0.4.2)
 
 ### Background on this project
