@@ -38,11 +38,9 @@ class EmbedIndex(Index):
     def r(self, tag):
         if len(self.current[tag]) == 0:
             self.current[tag] = Qoid(tag, copy.deepcopy(self[tag].val))
-            print(str(self.current[tag]))
             self.current[tag].remove("tagged")
         elif len(self.current[tag]) == 1:
             next_img = self.current[tag].pop(0).val
-            print(next_img)
             return next_img
         selection = randint(0, len(self.current[tag]) - 1)
         next_img = self.current[tag].pop(selection)
@@ -51,6 +49,7 @@ class EmbedIndex(Index):
     def remove_image(self, tag, this):
         this = this.replace("https://", "")
         self[tag].remove(this)
-        self.current[tag].remove(this)
+        if this in self.current[tag]:
+            self.current[tag].remove(this)
         self.source[tag].remove(this)
         self.source.save(echo=False)

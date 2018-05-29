@@ -1,0 +1,68 @@
+// What's in the config file?
+
+#init
+pre: the bot prefix
+server: the hollow knight server where emojis, etc, are
+zote: the Client ID of the bot
+
+#hk emoji
+/ contains hollow knight emoji IDs
+
+#discord emoji
+/ contains standard emoji character values
+
+#mods
+/ contains ID numbers for users allowed to use modonly commands
+
+#ch
+joins-and-leaves: logging channel for the rolling member count
+message-changelog: logging channel for messages edited and deleted
+meme: The deepest recesses of hell
+general: The only channel PSAs are allowed
+bots: The staff bot test channel
+
+#zdn
+/ contains IDs for the ZDN
+submissions: channel where submitted images appear
+delet-this: channel where requests for deletion appear
+log: channel where changes in the meme hoard are recorded
+meme: The catch-all meme category channel
+server: the server ID for the ZDN
+artist-exclusions: channel where images are kept (privately) which are forbidden by artists to be included in the ZDN
+
+#permamute
+/ users who are permamuted cannot access Zote's commands.
+/ This is only directly editable from the config file.
+
+#devs
+/ contains user IDs of the developers, who can use devplus commands
+
+#artsquad
+/ contains user IDs of the art mods
+
+#ignored
+/ contains user IDs of users which the bot is ignoring
+
+#silenced
+/ contains user IDs of channels which the bot is ignoring
+
+#flaggers
+/ contains the names of functions which require changes to be saved to the config file
+
+#woke
+/ contains user IDs for special individuals who will always gitwoke when they use the _gitgud command
+
+#hunger
+/ contains user IDs for the winners of Hunger Games simulations on the server
+
+#precepts
+/ contains the 57 precepts of Zote, the original meme which the bot provided
+
+#meme
+/ category of channels in which meme commands may be used
+
+#speedrunning
+/ category of channels in which speedrunning resource commands may be used
+
+#ref
+/ category of channels in which help commands may be used

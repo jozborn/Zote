@@ -19,10 +19,11 @@ print("""
 cfg = Index.open("data/config.cxr")
 zdn = EmbedIndex("data/img.cxr")
 che = Index.open("data/cache.cxr")
+cog = Index.open("data/cog.cxr")
 
 
 start = time()
-_dat = {"img": zdn, "blacklist": blacklist, "text": text, "start": start, "cache": che}
+_dat = {"img": zdn, "blacklist": blacklist, "text": text, "start": start, "cache": che, "cog": cog}
 
 inst = create_bot_instance(cfg, _dat)
 
