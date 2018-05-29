@@ -2,13 +2,16 @@ import requests
 import os
 
 from random import randint
-from discord import Channel, User, NotFound, HTTPException, DiscordException, PrivateChannel, Forbidden, Emoji, Game, Message
+from discord import Channel, User, NotFound, HTTPException, DiscordException,\
+    PrivateChannel, Forbidden, Emoji, Game, Message
 from discord.errors import ClientException
 from discord.ext.commands import Bot, check
 from data import wiki_str, wiki_search, log_error_message, log_command_usage
 from qoid import Property, Qoid, Index, QoidError
-from disco import embedify, sanitize
+from disco import sanitize
 from time import time
+
+from zutils import accept_and_log_meme, reject_and_log_meme, add_reactions, submit_and_mark_meme, check_message
 
 
 def create_bot_instance(cfg: Index, dat: dict):
@@ -55,57 +58,12 @@ def initialize_events(zote: Bot, cfg: Index, dat: dict):
 
     @zote.event
     async def on_message(message):
-        raw = message.content.lower().replace("_", ";")
-        message.content = raw
-        try:
-            await zote.process_commands(message)
-            if message.channel.id == cfg["ch"]["message-changelog"]:
-                if message.author.name == "Dyno":
-                    if message.embeds[0]["author"]["name"] == "Hollow Knight":
-                        await zote.delete_message(message)
-            if message.channel.id == cfg["ch"]["meme"]:
-                for word in raw.split(" "):
-                    if "zote" in word or "<@297840101944459275>" in word:
-                        await zote.add_reaction(message, reactions["zote"])
-                    if "dab" in word:
-                        await zote.add_reaction(message, reactions["hollowdab"])
-                    if "whomst" in word:
-                        await zote.add_reaction(message, reactions["hollowface"])
-            if message.channel.id == cfg["ch"]["general"] or message.channel.id == cfg["ch"]["bots"]:
-                bad_word = blacklist(message.content.lower())
-                if bad_word:
-                    print(f"Deleted spoiler {s} in $general")
-                    await zote.delete_message(message)
-                    await zote.send_message(
-                        message.author,
-                        f"{text['short_psa']}\n*(You received this message for saying the spoiler  \"{bad_word}\")*")
-        except Forbidden as f:
-            pass
+        await check_message(zote, message, cfg, reactions, blacklist)
 
     @zote.event
     async def on_message_edit(before, message):
-        raw = message.content.lower().replace("_", ";")
-        message.content = raw
-        try:
-            await zote.process_commands(message)
-            if message.channel.id == cfg["ch"]["meme"]:
-                for word in raw.split(" "):
-                    if "zote" in word or "<@297840101944459275>" in word:
-                        await zote.add_reaction(message, reactions["zote"])
-                    if "dab" in word:
-                        await zote.add_reaction(message, reactions["hollowdab"])
-                    if "whomst" in word:
-                        await zote.add_reaction(message, reactions["hollowface"])
-            if message.channel.id == cfg["ch"]["general"] or message.channel.id == cfg["ch"]["bots"]:
-                bad_word = blacklist(message.content.lower())
-                if bad_word:
-                    print(f"Deleted spoiler {s} in $general")
-                    await zote.delete_message(message)
-                    await zote.send_message(
-                        message.author,
-                        f"{text['short_psa']}\n*(You received this message for saying the spoiler  \"{bad_word}\")*")
-        except Forbidden as f:
-            pass
+        del before  # ignored parameters
+        await check_message(zote, message, cfg, reactions, blacklist)
 
     @zote.event
     async def on_ready():
@@ -117,58 +75,25 @@ def initialize_events(zote: Bot, cfg: Index, dat: dict):
 
     @zote.event
     async def on_reaction_add(reaction, user):
-        if reaction.message.channel.id == cfg["zdn"]["submissions"] and user.id != cfg["init"]["zote"]:
+        # verifies that non-zote reaction occurred in submissions
+        msg = reaction.message
+        if msg.channel.id == cfg["zdn"]["submissions"] and user.id != cfg["init"]["zote"]:
+            # No vote
             if reaction.emoji == "❌":
-                msg = reaction.message
+                # Submitting user
                 if msg.embeds[0]["description"].split(": ")[1] == user.id:
-                    # begin copied block sort of
-                    reason = "submitting user cancelled"
-                    e = msg.embeds[0]
-                    u = e["image"]["url"]
-                    await zote.send_message(destination=zote.log,
-                                            embed=embedify(e['image']['url'], f"Rejected: {reason}"))
-                    await zote.delete_message(msg)
-                    # end copied block sort of
-                if reaction.count > 6 or user.id in cfg["mods"]:
-                    # begin copied block
-                    reason = "bad meme" if user.id in cfg["mods"] else "community voted no"
-                    e = msg.embeds[0]
-                    u = e["image"]["url"]
-                    await zote.send_message(destination=zote.log,
-                                            embed=embedify(e['image']['url'], f"Rejected: {reason}"))
-                    await zote.delete_message(msg)
-                    # end copied block
+                    reason = "Cancelled by user"
+                    await reject_and_log_meme(zote, msg, reason)
+                # Mod or reject vote
+                elif reaction.count > 6 or user.id in cfg["mods"]:
+                    reason = "rejected by mod" if user.id in cfg["mods"] else "community voted no"
+                    await reject_and_log_meme(zote, msg, reason)
+            # Yes vote
             elif reaction.emoji == "✅":
+                # Mod or accept vote
                 if reaction.count > 10 or user.id in cfg["mods"]:
-                    # begin copied block
-                    msg = reaction.message
                     repo = zote.get_channel(cfg["zdn"]["meme"])
-                    e = msg.embeds[0]
-                    u = e["image"]["url"]
-                    if "imgur.com" in u:
-                        u.replace("imgur.com", "i.imgur.com")
-                        u += ".png"
-                    if "gfycat.com" in u:
-                        u.replace("gfycat.com", "thumbs.gfycat.com")
-                        u += "-size_restricted.gif"
-                    u_ext = u.rsplit('.', 1)[-1]
-                    img_data = requests.get(u).content
-                    with open(f"data/t-{msg.id}.{u_ext}", 'wb+') as img_file:
-                        img_file.write(img_data)
-                    ref = await zote.send_file(destination=repo, fp=f"data/t-{msg.id}.{u_ext}",
-                                               filename=f"{msg.id}.{u_ext}")
-                    await zote.send_message(destination=zote.log,
-                                            embed=embedify(e['image']['url'], f"Accepted to #{repo.name}"))
-                    img.add_image(repo.name, ref.attachments[0]["url"])
-                    await zote.delete_message(msg)
-                    await zote.delete_message(reaction.message)
-                    os.remove(f"data/t-{msg.id}.{u_ext}")
-                    # end copied block
-
-
-    @zote.event
-    async def wait_until_login():
-        pass
+                    await accept_and_log_meme(zote, img, msg, repo)
 
 
 cooldown = 0
@@ -181,6 +106,7 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
     text = dat["text"]
     img = dat["img"]
     che = dat["cache"]
+    cogs = dat["cog"]
 
     def _validator(category):
 
@@ -218,48 +144,30 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
             @_validator(category)
             async def wrapped(ctx, *args):
                 nonlocal che
-                ch_id = ctx.message.channel.id
+                ch_id = ctx.message.channel.id if ctx.message.channel else None
                 s_id = ctx.message.server.id if ctx.message.server else None
-                m_id = ctx.message.id
 
                 global cooldown
                 try:
                     try:
                         log_command_usage(f.__name__, ctx)
                     except Exception:
+                        # Yes I know, I'm sorry
                         print(">>>> log error")
                     cooldown += 1
-                    try:
-                        if isinstance(reaction, list):
-                            for each in reaction:
-                                try:
-                                    await zote.add_reaction(ctx.message, reactions[each])
-                                except Forbidden:
-                                    pass
-                        else:
-                            try:
-                                await zote.add_reaction(ctx.message, reactions[reaction])
-                            except Forbidden:
-                                pass
-                    except Exception as e:
-                        try:
-                            await zote.add_reaction(ctx.message, reactions["no"])
-                        except Forbidden:
-                            pass
+                    await add_reactions(zote, ctx.message, reactions, reaction)
                     args = await sanitize(zote, ctx.message.channel, *args)
                     await f(ctx, *args)
                     if s_id and "_meme" not in f.__name__ and f.__name__ != "meta":
                         record_msg(ctx.message)
-                        if len(che[ch_id]) > 6:
+                        while len(che[ch_id]) > 6:
                             try:
-                                await zote.delete_message(await zote.get_message(ctx.message.channel, che[ch_id].get(index=0).tag))
-                            except NotFound: pass
-                            except Forbidden: pass
-                            che[ch_id].remove(0)
-                            try:
-                                await zote.delete_message(await zote.get_message(ctx.message.channel, che[ch_id].get(index=0).tag))
-                            except NotFound: pass
-                            except Forbidden: pass
+                                m = await zote.get_message(ctx.message.channel, che[ch_id].get(index=0).tag)
+                                await zote.delete_message(m)
+                            except NotFound:
+                                pass
+                            except Forbidden:
+                                pass
                             che[ch_id].remove(0)
                         che.save(echo=False)
                     if f.__name__ in cfg["flaggers"]:
@@ -278,6 +186,8 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
         return wrap
 
     def record_msg(m: Message):
+        if not m.server:
+            return
         nonlocal che
         if m.server.id:
             if m.channel.id:
@@ -288,6 +198,55 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
                     che += Qoid(tag=m.channel.id)
                     che[m.channel.id] += Property(m.id)
                 che.save(echo=False)
+
+    def add_bot_cogs():
+
+        @zote.group(pass_context=True)
+        async def cog(ctx):
+            pass
+
+        @cog.command(name="test", pass_context=True)
+        @logger("modonly", ["zote"])
+        async def cog_test(ctx, *args):
+            await zote.say("Yup")
+
+        @cog.command(name="view", pass_context=True)
+        @logger("modonly", ["zote"])
+        async def cog_view(ctx, *args):
+            cog_name = args[0]
+            try:
+                ret = cogs[cog_name]
+                await zote.say(f"```{str(ret)}```")
+            except QoidError:
+                await zote.add_reaction(ctx.message, reactions["no"])
+
+        @cog.command(name="create", pass_context=True)
+        @logger("modonly", ["zote"])
+        async def cog_create(ctx, *args):
+            nonlocal cogs
+            cog_name = args[0]
+            if cog_name not in cogs:
+                cogs += Qoid(cog_name)
+                cogs.save(echo=False)
+                await zote.say("Done")
+            else:
+                await zote.say("Already exists")
+            pass
+
+        @cog.command(name="add", pass_context=True)
+        @logger("modonly", ["zote"])
+        async def cog_add(ctx, *args):
+            nonlocal cogs
+            try:
+                cog_name = args[0]
+                cog_tag = args[1]
+                cog_val = args[2]
+                cogs[cog_name] += Property(cog_tag, cog_val)
+                cogs.save(echo=False)
+            except IndexError:
+                await zote.add_reaction(ctx.message, reactions["no"])
+
+    add_bot_cogs()
 
     @zote.command(name="ignore", pass_context=True, hidden=True)
     @logger("modonly", ["happygrub"])
@@ -324,6 +283,7 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
     @zote.command(name="ignorelist", pass_context=True, hidden=True)
     @logger("modonly", ["happygrub"])
     async def ignorelist(ctx, *args):
+        del ctx, args  # ignored parameters
         if len(cfg["ignored"]) > 0:
             out = "**Ignored members**\n"
             for u_id in cfg["ignored"]:
@@ -410,14 +370,15 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
             print(f"{counter} messages cleared")
             if not del_cmd:
                 await zote.add_reaction(ctx.message, reactions["yes"])
-        except DiscordException as e:
-            print(f">>> >>> {e}")
+        except DiscordException as de:
+            print(f">>> >>> {de}")
             if not del_cmd:
                 await zote.add_reaction(ctx.message, reactions["dunq"])
 
     @zote.command(name="members", pass_context=True, hidden=True, aliases=["membercount"])
     @logger("modonly", ["happygrub"])
     async def member_count(ctx, *args):
+        del args  # ignored parameters
         m = await zote.say(f"**{ctx.message.server.member_count}** members in the server.")
         record_msg(m)
 
@@ -428,7 +389,7 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
     @zote.command(name="gitgud", pass_context=True, aliases=["waifu"])
     @logger("meme", ["zote"])
     async def gitgud(ctx, *args):
-        """IMPROVE YOURSELF"""
+        del args  # ignored parameters
         chance = randint(0, 10)
         if chance <= 1 or ctx.message.author.id in cfg["mods"] + cfg["woke"] + cfg["devs"] + cfg["hunger"]:
             await zote.add_reaction(ctx.message, reactions["hollowwoke"])
@@ -442,7 +403,8 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
     @logger("speedrunning", ["primalaspid"])
     async def randomizerseed(ctx, *args):
         seed = [randint(1, 9)]
-        seed += [randint(0, 9) for k in range(8)]
+        for k in range(8):
+            seed.append(randint(0, 9))
         g = ""
         for each in seed:
             g += str(each)
@@ -469,7 +431,6 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
                 m = await zote.say(f"<{query}>")
                 record_msg(m)
 
-
     #####################
     """ZOTE'S PRECEPTS"""
     #####################
@@ -485,14 +446,14 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
          for a specific precept,
          or hear them in order.`
         """
-        try:
+        del ctx  # ignored parameters
+        if len(args) > 0 and isinstance(args[0], int):
             p = cfg["precepts"].get(index=(int(args[0]) - 1) % 57)
-        except Exception as e:
+        else:
             p = cfg["precepts"].get(index=zote.precept_num)
             zote.precept_num += 1
         m = await zote.say(f"Precept {p}")
         record_msg(m)
-
 
     #################
     """ENEMY ICONS"""
@@ -519,6 +480,7 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
     @zote.command(name="meta", pass_context=True, hidden=True, aliases=[])
     @logger("meme", [])
     async def meta_command(ctx, *args):
+        del args  # ignored parameters
         await zote.delete_message(ctx.message)
 
     ##################
@@ -527,35 +489,32 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
 
     def get_kind(data):
 
+        async def multi_cmd(ctx, *args):
+            del args  # ignored parameters
+            em = img.r(data["loc"])
+            m = await zote.send_message(destination=ctx.message.channel, embed=em)
+            record_msg(m)
+
+        async def single_cmd(ctx, *args):
+            del args  # ignored parameters
+            em = img[data["loc"]][data["img"]]
+            m = await zote.send_message(destination=ctx.message.channel, embed=em)
+            record_msg(m)
+
+        async def text_cmd(ctx, *args):
+            del args  # ignored parameters
+            cnt = text[data["loc"]]
+            m = await zote.send_message(destination=ctx.message.channel, content=cnt)
+            record_msg(m)
+
         if data["kind"] == "multi":
-            async def multi_cmd(ctx, *args):
-                em = img.r(data["loc"])
-                m = await zote.send_message(destination=ctx.message.channel, embed=em)
-                record_msg(m)
             return multi_cmd
-
-        if data["kind"] == "single":
-            async def single_cmd(ctx, *args):
-                em = img[data["loc"]][data["img"]]
-                m = await zote.send_message(destination=ctx.message.channel, embed=em)
-                record_msg(m)
+        elif data["kind"] == "single":
             return single_cmd
-
-        if data["kind"] == "text":
-            async def text_cmd(ctx, *args):
-                cnt = text[data["loc"]]
-                m = await zote.send_message(destination=ctx.message.channel, content=cnt)
-                record_msg(m)
+        elif data["kind"] == "text":
             return text_cmd
 
-    @zote.command(name="broke", hidden=False, pass_context=True, aliases=["badlink"])
-    @logger("meme", ["sadgrub"])
-    async def broke_meme_link(ctx, *args):
-        await zote.send_message(await zote.get_user_info(151542934892707840), str(args[0].embeds[0]["image"]["url"]))
-
-    COG = Index.open("data/cog.cxr")
-
-    for e in COG:
+    for e in cogs:
         try:
             if e.tag:
                 # retrieve appropriate function from data
@@ -568,18 +527,17 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
                 # submit command to client
                 zote.command(name=e.tag, pass_context=True, aliases=e.all_of("alias"))(cmd)
         except QoidError:
-            print(f"Ignoring read exception in #{e.tag}")
+            print(f"Ignoring read exception in #{e.tag}, command was not completed")
         except ClientException as dece:
             print(f"Issue adding command {e.tag}, check aliases", dece)
-
 
     #####################
     # IMAGE SUBMISSIONS #
     #####################
 
     async def clone_img_loc(ctx_message, msg_from, ch_to, del_old=False):
-        e = msg_from.attachments[0]
-        u = e["url"]
+        atch = msg_from.attachments[0]
+        u = atch["url"]
         u_ext = u.rsplit('.', 1)[-1]
         img_data = requests.get(u).content
         with open(f"data/t-{msg_from.id}.{u_ext}", 'wb+') as img_file:
@@ -601,24 +559,7 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
         msg = args[0]
         repo = args[1] if len(args) > 1 else zote.get_channel(cfg["zdn"]["meme"])
         if msg and repo:
-            e = msg.embeds[0]
-            u = e["image"]["url"]
-            if "imgur.com" in u:
-                u.replace("imgur.com", "i.imgur.com")
-                u += ".png"
-            if "gfycat.com" in u:
-                u.replace("gfycat.com", "thumbs.gfycat.com")
-                u += "-size_restricted.gif"
-            u_ext = u.rsplit('.', 1)[-1]
-            img_data = requests.get(u).content
-            with open(f"data/t-{msg.id}.{u_ext}", 'wb+') as img_file:
-                img_file.write(img_data)
-            ref = await zote.send_file(destination=repo, fp=f"data/t-{msg.id}.{u_ext}", filename=f"{msg.id}.{u_ext}")
-            await zote.send_message(destination=zote.log, embed=embedify(e['image']['url'], f"Accepted to #{repo.name}"))
-            img.add_image(repo.name, ref.attachments[0]["url"])
-            await zote.delete_message(msg)
-            await zote.delete_message(ctx.message)
-            os.remove(f"data/t-{msg.id}.{u_ext}")
+            await accept_and_log_meme(zote, img, msg, repo)
         else:
             await zote.add_reaction(ctx.message, reactions["no"])
 
@@ -656,8 +597,8 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
             while not found:
                 prev = bf
                 async for msg in zote.logs_from(channel=ctx.message.channel, limit=100, before=bf, after=None):
-                    for e in msg.attachments:
-                        if args[0] == e['url']:
+                    for each in msg.attachments:
+                        if args[0] == each['url']:
                             await zote.delete_message(msg)
                             img.remove_image(ctx.message.channel.name, args[0])
                             img.save_source(echo=False)
@@ -675,10 +616,11 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
     @zote.command(name="deletthis", hidden=True, pass_context=True, aliases=[])
     @logger("meme", ["zote"])
     async def delet_this(ctx, *args):
+        del args  # ignored parameters
         if len(ctx.message.embeds) > 0:
             for each in ctx.message.embeds:
-                e = each["url"]
-                await zote.send_message(zote.delet, content=e)
+                em = each["url"]
+                await zote.send_message(zote.delet, content=em)
 
     @zote.command(name="move", hidden=True, pass_context=True, aliases=["m"])
     @logger("modonly", ["zote"])
@@ -692,12 +634,9 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
     @logger("modonly", ["zote"])
     async def reject_meme(ctx, *args):
         msg = args[0]
-        reason = ctx.message.content.split(" ", 2)[2] if len(args) >= 2 else "bad meme"
+        reason = ctx.message.content.split(" ", 2)[2] if len(args) >= 2 else "Rejected by moderator"
         if msg:
-            e = msg.embeds[0]
-            u = e["image"]["url"]
-            await zote.send_message(destination=zote.log, embed=embedify(e['image']['url'], f"Rejected: {reason}"))
-            await zote.delete_message(msg)
+            await reject_and_log_meme(zote, msg, reason)
             await zote.delete_message(ctx.message)
         else:
             await zote.add_reaction(ctx.message, reactions["no"])
@@ -705,37 +644,24 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
     @zote.command(name="submit", hidden=True, pass_context=True, aliases=[])
     @logger("meme", ["zote"])
     async def submit_meme(ctx, *args):
-        u_name = ctx.message.author.name
-        u_id = ctx.message.author.id
-        if len(ctx.message.attachments) > 0:
-            for each in ctx.message.attachments:
-                e = embedify(each["url"], f"{u_name}: {u_id}")
-                m = await zote.send_message(zote.submissions, embed=e)
-                await zote.edit_message(m, new_content=f"{m.id}", embed=e)
-                await zote.add_reaction(m, reactions["yes"])
-                await zote.add_reaction(m, reactions["no"])
-        elif len(ctx.message.embeds) > 0:
-            for each in ctx.message.embeds:
-                e = embedify(each["url"], f"{u_name}: {u_id}")
-                m = await zote.send_message(zote.submissions, embed=e)
-                await zote.edit_message(m, new_content=f"{m.id}", embed=e)
-                await zote.add_reaction(m, reactions["yes"])
-                await zote.add_reaction(m, reactions["no"])
-
-    @zote.command(name="zdn", hidden=False, pass_context=True, aliases=["wherememes"])
-    @logger("meme", ["zote"])
-    async def where_memes(ctx, *args):
-        await zote.say("https://discord.gg/kqdCYZE")
+        del args  # ignored parameters
+        if ctx.message.server.id == cfg["zdn"]["server"] or ctx.message.author.id in cfg["mods"]:
+            u_name = ctx.message.author.name
+            u_id = ctx.message.author.id
+            if len(ctx.message.attachments) > 0:
+                for each in ctx.message.attachments:
+                    await submit_and_mark_meme(zote, each, f"{u_name}: {u_id}", reactions)
+            elif len(ctx.message.embeds) > 0:
+                for each in ctx.message.embeds:
+                    await submit_and_mark_meme(zote, each, f"{u_name}: {u_id}", reactions)
+        else:
+            await zote.add_reaction(ctx.message, reactions(["dunq"]))
 
     @zote.command(name="embed", hidden=False, pass_context=True, aliases=["em"])
     @logger("modonly", ["zote"])
     async def get_embed(ctx, *args):
+        del ctx  # ignored parameters
         m = args[0]
-        for e in m.embeds:
-            await zote.say(f"```\n{e}\n```")
-
-    @zote.command(name="jonnypls", hidden=False, pass_context=True, aliases=["gng"])
-    @logger("meme", ["teamcherry"])
-    async def jonnypls(ctx, *args):
-        await zote.say("Gods and Glory has not yet been announced.")
+        for em in m.embeds:
+            await zote.say(f"```\n{em}\n```")
 
