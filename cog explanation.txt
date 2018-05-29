@@ -1,0 +1,8 @@
+#Command name
+log: for the logger function
+kind: the type/sort of command; eg multi or single for images
+category: to decide usability of the command
+reaction: added to the message; can have multiple
+reaction: also added to the message
+alias: alternate command name; can have multiple
+alias: also alternate command name
