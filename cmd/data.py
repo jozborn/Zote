@@ -7,14 +7,22 @@ from urllib import request
 from time import time
 from os import path, mkdir
 
+import sys
+
 _dir_logs = "data/log/"
 if not path.exists(_dir_logs):
     mkdir(_dir_logs)
 
 
+def log_message(name, ctx):
+    # logs metadata on messages across all servers in which it is present
+    pass
+
+
 def log_command_usage(name, ctx):
     try:
         u_name = ctx.message.author.name
+        u_id = ctx.message.author.id
         if ctx.message.server:
             server = ctx.message.server.name
             s_id = ctx.message.server.id
@@ -23,16 +31,20 @@ def log_command_usage(name, ctx):
             s_id = ctx.message.author.id
         if ctx.message.channel:
             ch_name = ctx.message.channel.name
+            ch_id = ctx.message.channel.id
         else:
             ch_name = f"{ctx.message.author.name}"
-        time_formatted = datetime.datetime.fromtimestamp(time()).strftime('%H:%M:%S')
-        s = f"{time_formatted} {u_name}, {name}, {server}({s_id})-#{ch_name}"
-        print(s)
+            ch_id = "0"
+        dayf = datetime.datetime.fromtimestamp(time()).strftime('%m/%d')
+        timef = datetime.datetime.fromtimestamp(time()).strftime('%H:%M:%S')
+        print_log = f"{dayf} {timef}  {u_name}, {name}, {server}-#{ch_name}"
+        s = f"{dayf},{timef},{u_id},{name},{s_id},{ch_id}"
+        print(print_log)
         with open('data/log/cmd.zote', 'a') as cmd_log:
             cmd_log.write(s)
             cmd_log.write("\n")
     except UnicodeEncodeError:
-        s = f"{time_formatted} DANKNAME420, {name}, {server}({s_id})-#{ch_name}"
+        s = f"{timef} DANKNAME420, {name}, {server}({s_id})-#{ch_name}"
         with open('data/log/cmd.zote', 'a') as cmd_log:
             cmd_log.write(s)
             cmd_log.write("\n")
@@ -40,6 +52,7 @@ def log_command_usage(name, ctx):
 
 
 def log_error_message(f_name, exc):
+    exc_type, exc_obj, exc_tb = sys.exc_info()[:3]
     with open(_dir_logs + "error.zote", "a") as file:
         file.write(f"{f_name}: {str(type(exc))} : {str(exc)}\n")
     print(f"{f_name}: {type(exc)} {str(exc)}")
@@ -116,6 +129,8 @@ _where_memes = "https://discord.gg/kqdCYZE"
 
 _gng_not_announced = "Gods and Glory has not yet been announced."
 
+_invite_link = "<https://discordapp.com/api/oauth2/authorize?client_id=297840101944459275&permissions=346176&scope=bot>"
+
 text = {
     "sr_guides": _sr_guides,
     "sr_resources": _sr_resources,
@@ -125,5 +140,6 @@ text = {
     "randomizer": _randomizer_taunt,
     "short_psa": _splr_lrt,
     "where_memes": _where_memes,
-    "gng_not_announced": _gng_not_announced
+    "gng_not_announced": _gng_not_announced,
+    "invite_link": _invite_link
 }
