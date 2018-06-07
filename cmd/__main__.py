@@ -5,6 +5,7 @@ from inf import token
 from img import EmbedIndex
 from time import time, sleep
 from asyncio import get_event_loop, Task, gather
+import aiohttp
 
 print("""
  ##########################
@@ -33,7 +34,7 @@ while True:
     try:
         print("Initializing...")
         loop.run_until_complete(inst.start(token()))
-    except Exception as exc:
+    except aiohttp.errors.ClientOSError as exc:
         start = time()
         log_error_message("Event Loop", exc)
         pending = Task.all_tasks(loop=inst.loop)
