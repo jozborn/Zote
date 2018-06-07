@@ -48,8 +48,15 @@ class EmbedIndex(Index):
 
     def remove_image(self, tag, this):
         this = this.replace("https://", "")
-        self[tag].remove(this)
+        cnd = False
+        if this in self[tag]:
+            self[tag].remove(this)
+            cnd = True
         if this in self.current[tag]:
             self.current[tag].remove(this)
-        self.source[tag].remove(this)
-        self.source.save(echo=False)
+            cnd = True
+        if this in self.source[tag]:
+            self.source[tag].remove(this)
+            cnd = True
+        if cnd:
+            self.source.save(echo=False)
