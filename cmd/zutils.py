@@ -13,7 +13,7 @@ from discord.ext.commands import Bot
 from discord import Forbidden, NotFound
 
 
-async def accept_and_log_meme(zote: Bot, img, msg, repo):
+async def accept_and_log_meme(zote: Bot, img, msg, repo, reason):
     u = msg.embeds[0]["image"]["url"]
     if "imgur.com" in u:
         u.replace("imgur.com", "i.imgur.com")
@@ -28,7 +28,7 @@ async def accept_and_log_meme(zote: Bot, img, msg, repo):
     ref = await zote.send_file(destination=repo, fp=f"data/t-{msg.id}.{u_ext}",
                                filename=f"{msg.id}.{u_ext}")
     await zote.send_message(destination=zote.log,
-                            embed=embedify(u, f"Accepted to #{repo.name}"))
+                            embed=embedify(u, reason))
     img.add_image(repo.name, ref.attachments[0]["url"])
     await zote.delete_message(msg)
     os.remove(f"data/t-{msg.id}.{u_ext}")
@@ -56,7 +56,10 @@ async def submit_and_mark_meme(zote: Bot, a, desc, reactions):
 
 
 async def check_message(zote: Bot, message, cfg, reactions, blacklist):
-    raw = message.content.lower().replace("_", ";")
+    # raw_list = message.content.replace("_", ";").split(" ")
+    raw_list = message.content.split(" ")
+    raw_list[0] = raw_list[0].lower()
+    raw = ' '.join(raw_list)
     message.content = raw
     await zote.process_commands(message)
     if message.channel.id == cfg["ch"]["message-changelog"] and message.author.name == "Dyno":
