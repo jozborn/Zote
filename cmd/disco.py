@@ -29,7 +29,7 @@ async def sanitize(zote, ctx_ch, *args):
     :param zote: the discord.Client which will retrieve info from the API
     :param ctx_ch: the channel in which the command was executed
     :param args: the original arguments passed in the message
-    :return: the
+    :return: the arguments
     """
     out = []
     for a in args:
@@ -51,19 +51,25 @@ async def sanitize(zote, ctx_ch, *args):
             continue
 
         # Test argument for Message
-        msg_a = zote.get_message(ctx_ch, a)
-        # print(f"msg: {type(msg_a)}")
-        if msg_a:
-            try:
-                out.append(await msg_a)
-                continue
-            except HTTPException:
-                pass
+        if a.isnumeric():
+            msg_a = zote.get_message(ctx_ch, a)
+            # print(f"msg: {type(msg_a)}")
+            if msg_a:
+                try:
+                    out.append(await msg_a)
+                    continue
+                except HTTPException:
+                    pass
 
         # Test argument for User
-        if a.startswith(("<@", "<@!")) and a.endswith(">"):
-            i = 2 if a.startswith("<@") else 3
-            usr_a = zote.get_user_info(a[i:-1])
+        if a.startswith(("<@", "<@!")) and a.endswith(">") or a.isnumeric() and len(a) > 4:
+            if a.isnumeric():
+                i = 0
+                j = 0
+            else:
+                i = 3 if a.startswith("<@!") else 2
+                j = 1
+            usr_a = zote.get_user_info(a[i:-j if j else None])
             # print(f"ch: {type(ch_a)}")
             if usr_a:
                 try:
