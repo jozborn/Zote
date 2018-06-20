@@ -686,9 +686,7 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
     @logger("meme", ["zote"])
     async def submit_meme(ctx, *args):
         del args  # ignored parameters
-        if ctx.message.server.id == cfg["zdn"]["server"]\
-                or ctx.message.channel.id == cfg["ch"]["meme"]\
-                or ctx.message.author.id in cfg["mods"]:
+        if ctx.message.server.id == cfg["zdn"]["server"] or ctx.message.author.id in cfg["mods"]:
             u_name = ctx.message.author.name
             u_id = ctx.message.author.id
             if len(ctx.message.attachments) > 0:
