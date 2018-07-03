@@ -100,7 +100,7 @@ If it requires progressing past Crossroads to unlock inside Crossroads, don't ta
 If you need help with a specific portion of the game, ask in <#349116318865424384> and someone will answer.\n
 If you wish to talk about the rest of the game or the lore or such, <#283680756159741953>\n
 If you've drawn something or would like to talk about the art, <#301227786658381825>."""
-_hundred_guide = "**100% guide**: https://docs.google.com/document/d/1smOruEIYHbPxsPVocX3RR3E5jrzhpq7RrXhOAocfZDE"
+_completion_guide = "**107% guide**: http://hollowknight.wikia.com/wiki/Completion"
 _modtext = """**MOD-ONLY COMMANDS:**\n
 **ignore** [user id]: prevents the user from accessing Zote commands, or takes them off the ignore list.\n
 **ignorelist** shows all users being ignored and their ID.\n
@@ -135,7 +135,7 @@ text = {
     "sr_guides": _sr_guides,
     "sr_resources": _sr_resources,
     "long_psa": _general_psa,
-    "100": _hundred_guide,
+    "107": _completion_guide,
     "mod_help": _modtext,
     "randomizer": _randomizer_taunt,
     "short_psa": _splr_lrt,
