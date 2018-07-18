@@ -128,7 +128,7 @@ _sr_resources = "https://www.speedrun.com/hollowknight/resources"
 
 _where_memes = "https://discord.gg/kqdCYZE"
 
-_gng_not_announced = f"Gods and Glory will be released August 23rd, 2018, in {str(dt(2018, 8, 3) - dt.utcnow())}."
+_gng_not_announced = f"Gods and Glory will be released August 23rd, 2018 in {str(dt(2018, 8, 3) - dt.utcnow())}."
 
 _invite_link = "<https://discordapp.com/api/oauth2/authorize?client_id=297840101944459275&permissions=346176&scope=bot>"
 
