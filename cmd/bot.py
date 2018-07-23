@@ -162,9 +162,11 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
                 return u_id in cfg["artsquad"] and s_id == cfg["zdn"]["server"]
             elif u_id in cfg["ignored"] or ch_id in cfg["silenced"]:
                 return False
-            elif isinstance(ctx.message.channel, PrivateChannel) or ctx.message.server.id != cfg["init"]["server"]:
+            elif (s_id in cfg and u_id in cfg[s_id]) and category == "clear":
+                return True
+            elif isinstance(ctx.message.channel, PrivateChannel) or s_id != cfg["init"]["server"]:
                 return category != "modonly" and cooldown < lim
-            elif category != "modonly":
+            elif "clear" != category != "modonly":
                 return ch_name in cfg[category] and cooldown < lim
             else:
                 return False
@@ -329,7 +331,7 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
             await zote.say("No ignored members. Good!")
 
     @zote.command(name="clear", pass_context=True, hidden=True)
-    @logger("modonly", [])
+    @logger("clear", [])
     async def clear(ctx, *args):
         if not args:
             await zote.add_reaction(ctx.message, reactions["dunq"])
@@ -367,6 +369,10 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
                 us = arg2.id
         if not ch:
             ch = zote.get_channel(ctx.message.channel.id)
+
+        if ch.id not in cfg["clear whitelist"] and ch.server.id == cfg["init"]["server"]:
+            await zote.add_reaction(ctx.message, reactions["no"])
+            return
 
         bf = None
         counter = 0
@@ -713,4 +719,10 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
         o = ' '.join(args)
         m = await zote.send_message(destination=zote.meme, content=o)
         record_msg(m)
+
+    @zote.command(name="neglect", hidden=True, pass_context=True, aliases=["kill", "stop"])
+    @logger("modonly", ["zote", "primalaspid"])
+    async def neglect(ctx, *args):
+        exit()
+
 
