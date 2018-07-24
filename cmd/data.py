@@ -2,8 +2,9 @@
 Just anything that needs to be placed
 """
 import datetime
-from random import randint
+from random import choice
 from urllib import request
+from datetime import datetime as dt
 from time import time
 from os import path, mkdir
 
@@ -117,7 +118,7 @@ _taunt_list = [
     "It's impossible to softlock, just gitgud."]
 
 
-def _randomizer_taunt(): return _taunt_list[randint(0, len(_taunt_list) - 1)]
+def _randomizer_taunt(): return choice(_taunt_list)
 
 
 _splr_lrt = """**Reminder**: Please avoid any discussion of content past the Forgotten Crossroads! Discuss details
@@ -127,7 +128,7 @@ _sr_resources = "https://www.speedrun.com/hollowknight/resources"
 
 _where_memes = "https://discord.gg/kqdCYZE"
 
-_gng_not_announced = "Gods and Glory will be released in the coming months."
+_gng_not_announced = f"Gods and Glory will be released August 23rd, 2018 in {str(dt(2018, 8, 23) - dt.utcnow())}."
 
 _invite_link = "<https://discordapp.com/api/oauth2/authorize?client_id=297840101944459275&permissions=346176&scope=bot>"
 
