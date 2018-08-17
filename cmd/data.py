@@ -106,8 +106,6 @@ _modtext = """**MOD-ONLY COMMANDS:**\n
 **ignorelist** shows all users being ignored and their ID.\n
 **silence** [#tag channel]: stops/starts Zote responding to commands in a channel\n
 **clear** [x] or **clear** [@tag user] [x]: deletes X messages from a channel (or a user in that channel)\n
-**clearzotes** [optional amount x]: deletes all _commands and posts from Zote, or the X most recent ones\n
-**helpchannel**: clears all messages in the help channel and reposts the opening help message.\n
 **ban**: reaction image of the False Knight's Banhammer (not an actual ban!)"""
 _taunt_list = [
     "May you find Mantis Claw in King's Pass.",
@@ -127,7 +125,7 @@ _sr_resources = "https://www.speedrun.com/hollowknight/resources"
 
 _where_memes = "https://discord.gg/kqdCYZE"
 
-_gng_not_announced = f"Gods and Glory will be released on August 23rd."
+_gng_not_announced = f"Godmaster will be released on August 23rd."
 
 _invite_link = "<https://discordapp.com/api/oauth2/authorize?client_id=297840101944459275&permissions=346176&scope=bot>"
 

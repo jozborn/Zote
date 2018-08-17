@@ -142,80 +142,80 @@ def initialize_commands(zote: Bot, cfg: Index, dat: dict):
     che = dat["cache"]
     cogs = dat["cog"]
 
-    def _validator(category):
-
-        def predicate(ctx):
-            global cooldown
-            global lim
-            ch_name = ctx.message.channel.name if ctx.message.channel else "DM"
-            ch_id = ctx.message.channel.id if ctx.message.channel else None
-            s_id = ctx.message.server.id if ctx.message.server else None
-            u_id = ctx.message.author.id
-
-            if u_id in cfg["permamute"]:
-                return False
-            elif u_id in cfg["mods"]:
-                return True
-            elif category == "devplus":
-                return u_id in cfg["devs"]
-            elif category == "artsquad":
-                return u_id in cfg["artsquad"] and s_id == cfg["zdn"]["server"]
-            elif u_id in cfg["ignored"] or ch_id in cfg["silenced"]:
-                return False
-            elif (s_id in cfg and u_id in cfg[s_id]) and category == "clear":
-                return True
-            elif isinstance(ctx.message.channel, PrivateChannel) or s_id != cfg["init"]["server"]:
-                return category != "modonly" and cooldown < lim
-            elif "clear" != category != "modonly":
-                return ch_name in cfg[category] and cooldown < lim
-            else:
-                return False
-
-        return check(predicate)
-
     def logger(category, reaction):
 
         def wrap(f):
 
-            @_validator(category)
+            def has_permissions(ctx):
+                global cooldown
+                global lim
+                ch_name = ctx.message.channel.name if ctx.message.channel else "DM"
+                ch_id = ctx.message.channel.id if ctx.message.channel else None
+                s_id = ctx.message.server.id if ctx.message.server else None
+                u_id = ctx.message.author.id
+
+                if u_id in cfg["permamute"]:
+                    return False
+                elif u_id in cfg["mods"]:
+                    return True
+                elif category == "devplus":
+                    return u_id in cfg["devs"]
+                elif category == "artsquad":
+                    return u_id in cfg["artsquad"] and s_id == cfg["zdn"]["server"]
+                elif u_id in cfg["ignored"] or ch_id in cfg["silenced"]:
+                    return False
+                elif (s_id in cfg and u_id in cfg[s_id]) and category == "clear":
+                    return True
+                elif isinstance(ctx.message.channel, PrivateChannel) or s_id != cfg["init"]["server"]:
+                    return category != "modonly" and cooldown < lim
+                elif "clear" != category != "modonly":
+                    return ch_name in cfg[category] and cooldown < lim
+                else:
+                    return False
+
             async def wrapped(ctx, *args):
                 nonlocal che
                 ch_id = ctx.message.channel.id if ctx.message.channel else None
                 s_id = ctx.message.server.id if ctx.message.server else None
 
                 global cooldown
-                try:
+
+                if not has_permissions(ctx):
+                    print(f"Permission check failed for {f.__name__} by {ctx.message.author.name}#{ctx.message.author.discriminator}")
+                    await zote.add_reaction(ctx.message, reactions["no"])
+                else:
                     try:
-                        log_command_usage(f.__name__, ctx)
-                    except Exception:
-                        # Yes I know, I'm sorry
-                        print(">>>> log error")
-                    cooldown += 1
-                    await add_reactions(zote, ctx.message, reactions, reaction)
-                    args = await sanitize(zote, ctx.message.channel, *args)
-                    await f(ctx, *args)
-                    if s_id and "_meme" not in f.__name__ and f.__name__ != "meta":
-                        record_msg(ctx.message)
-                        while len(che[ch_id]) > 6:
-                            try:
-                                m = await zote.get_message(ctx.message.channel, che[ch_id].get(index=0).tag)
-                                await zote.delete_message(m)
-                            except NotFound:
-                                pass
-                            except Forbidden:
-                                pass
-                            che[ch_id].remove(0)
-                        che.save(echo=False)
-                    if f.__name__ in cfg["flaggers"]:
-                        cfg.save(echo=False)
-                    cooldown -= 1
-                except Exception as exc:
-                    log_error_message(f.__name__, exc)
-                    cooldown -= 1
-                    try:
-                        await zote.add_reaction(ctx.message, reactions["no"])
-                    except Forbidden:
-                        pass
+                        try:
+                            log_command_usage(f.__name__, ctx)
+                        except Exception:
+                            # Yes I know, I'm sorry
+                            print(">>>> log error")
+                        cooldown += 1
+                        await add_reactions(zote, ctx.message, reactions, reaction)
+                        args = await sanitize(zote, ctx.message.channel, *args)
+                        await f(ctx, *args)
+                        if s_id and "_meme" not in f.__name__ and f.__name__ != "meta":
+                            record_msg(ctx.message)
+                            while len(che[ch_id]) > 6:
+                                try:
+                                    m = await zote.get_message(ctx.message.channel, che[ch_id].get(index=0).tag)
+                                    await zote.delete_message(m)
+                                except NotFound:
+                                    pass
+                                except Forbidden:
+                                    pass
+                                che[ch_id].remove(0)
+                            che.save(echo=False)
+                        if f.__name__ in cfg["flaggers"]:
+                            cfg.save(echo=False)
+                        cooldown -= 1
+                    except Exception as exc:
+                        log_error_message(f.__name__, exc)
+                        cooldown -= 1
+                        try:
+                            await zote.add_reaction(ctx.message, reactions["no"])
+                        except Forbidden:
+                            pass
 
             return wrapped
 
